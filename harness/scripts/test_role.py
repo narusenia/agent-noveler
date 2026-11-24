@@ -20,7 +20,11 @@ assert field(merge(tomllib.loads("[agy]\nallow_print=false"), tomllib.loads("[ag
 print("ok")
 
 # 既定のroles.toml: 全部の役がclaude、添削モードは切、agy -p は使わない
-base = tomllib.loads((Path(__file__).parent.parent / "roles.toml").read_text())
+# 原稿のリポジトリに入れたあと（.harness-manifest がある）は、roles.tomlが作品ごとに書き換わるので見ない
+root = Path(__file__).parent.parent
+if (root / ".harness-manifest").exists():
+    sys.exit(0)
+base = tomllib.loads((root / "roles.toml").read_text())
 assert all(resolve(base, n)["runner"] == "claude" for n in ["writer", "planner", "critic", "spar", "first-read-light", "first-read-heavy"])
 assert (field(base, "mode.write"), field(base, "mode.flow"), field(base, "agy.allow_print"), field(base, "style.pack")) == ("ai", "standard", "False", "general")
 assert [resolve(base, n)["model"] for n in ["writer", "critic", "proofreader", "checker", "spar"]] == ["sonnet", "sonnet", "haiku", "haiku", "sonnet"]

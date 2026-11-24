@@ -85,6 +85,7 @@ cmp -s "$a/agents/critic.md" "$root/harness/agents/critic.md" || fail "update re
 [ -f "$a/agents/editor.md" ] || fail "update restores removed harness files"
 [ "$(readlink "$a/style")" = packs/light-novel ] || fail "update keeps the pack"
 grep -qx skills/foo/SKILL.md "$a/.harness-manifest" && fail "manifest lists the work's own files"
+python3 "$a/scripts/test_role.py" >/dev/null || fail "test_role in an installed repo with its own roles.toml"
 # 一覧の無い古いリポジトリでは入れ直さない
 rm "$a/.harness-manifest"
 bash "$root/harness/scripts/install.sh" --update "$tmp/ln" 2>/dev/null && fail "update without a manifest should stop"
