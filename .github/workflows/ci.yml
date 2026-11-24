@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  syuki:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/syuki
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --extra ja
+      - run: uv run pytest -q
+      - name: sample work passes syuki check
+        run: uv run syuki check --work ../../examples/sample-work
+
+  shosai:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @narusenia/shosai test
+      - run: pnpm --filter @narusenia/shosai typecheck
+
+  harness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 harness/scripts/test_role.py
+      - run: python3 harness/scripts/test_review_add.py
+      - run: python3 harness/skills/first-read/scripts/check_quotes.py --selftest
+      - name: light-novel pack scripts
+        run: for t in harness/packs/light-novel/skills/light-novel/scripts/test_*.py; do python3 "$t"; done
