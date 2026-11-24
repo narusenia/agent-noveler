@@ -1,0 +1,13 @@
+# 作品の文体の設定。lint（syuki lint）が読む。書いた項目だけが既定を上書きする。
+characters = "characters.md"  # 口癖を読む人物ファイル（style/ の親からの相対）
+catchphrase_limit = 2      # 口癖は一章にこの回数まで
+# voice_min = 0            # 語り手の話し声のない地の文が続いても指摘しない（三人称の抑えた語りなど）
+
+[comma_exempt]             # 台詞の読点の型を許す人物の語（区切って話す口調など）
+# words = []
+# speakers = []
+
+[pov]                      # 人称の揺れの検査。mode を空けると見ない
+# mode = "三人称限定"      # 三人称限定 / 一人称
+# names = []               # 視点人物の地の文での呼び名
+# first_person = "私"      # 心の声の一人称

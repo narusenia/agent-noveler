@@ -61,4 +61,11 @@ grep -q '^pack = "general"' "$tmp/plain/.agents/roles.toml" || fail "general pac
 grep -q '^flow = "full"' "$tmp/plain/.agents/roles.toml" || fail "NOVELER_FLOW"
 [ "$(readlink "$tmp/plain/.agents/style")" = packs/general ] || fail "style link"
 [ -f "$tmp/plain/.agents/skills/general/scripts/check_style.py" ] || fail "general lint"
+grep -q 緩急 "$tmp/plain/g/style/profile.toml" && fail "general profile template"
 echo "ok: noveler general pack"
+
+# 文体パック light-novel を選ぶと、そのパックの雛形が写る
+rm -rf "$tmp/ln"
+NOVELER_PACK=light-novel NOVELER_WORK=l "$noveler" new "$tmp/ln"
+grep -q '^rhythm = "緩急"' "$tmp/ln/l/style/profile.toml" || fail "light-novel profile template"
+echo "ok: noveler light-novel pack"

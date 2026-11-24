@@ -228,6 +228,18 @@ def lint_scripts(root: Path) -> Path | None:
     return None
 
 
+def pack_templates(root: Path) -> Path | None:
+    """文体パックの雛形のフォルダ（pack.toml の [provides] templates）を、lint_scripts と同じ順にたどって探す。"""
+    here = Path(__file__).resolve()
+    for d in [root, *root.parents, *here.parents]:
+        for base in (".agents", "harness"):
+            pack = d / base / "packs" / style_pack(d / base, root)
+            if (pack / "pack.toml").is_file():
+                rel = tomllib.loads((pack / "pack.toml").read_text(encoding="utf-8")).get("provides", {}).get("templates")
+                return pack / rel if rel and (pack / rel).is_dir() else None
+    return None
+
+
 def check_keep(work: Work, r: Report):
     keep = work.root / "style" / "keep.md"
     scripts = lint_scripts(work.root)

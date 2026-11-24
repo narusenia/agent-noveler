@@ -309,6 +309,14 @@ def cmd_init(args) -> int:
     files["ledger/places.yaml"] = head + "places: []\nroutes: []\n"
     files["ledger/vol1/scenes.yaml"] = head + "[]\n"
     files["ledger/vol1/events.yaml"] = head + "[]\n"
+    # 文体パックの雛形（plot.md、style/profile.toml など）。作品のフォルダと同じ並びで置いてある
+    templates = check.pack_templates(root.resolve())
+    if templates is None:
+        print("syuki: 文体パックの雛形（pack.toml の templates）が見つからないので、plot.md や style/ は作らなかった", file=sys.stderr)
+    else:
+        for f in sorted(templates.rglob("*")):
+            if f.is_file():
+                files[f.relative_to(templates).as_posix()] = f.read_text(encoding="utf-8")
     for rel, text in files.items():
         path = root / rel
         if path.exists():
@@ -319,11 +327,7 @@ def cmd_init(args) -> int:
         print(f"作成: {path}")
     (root / "manuscript" / "vol1").mkdir(parents=True, exist_ok=True)
     (root / "ledger" / "vol1" / "notes").mkdir(parents=True, exist_ok=True)
-    scripts = check.lint_scripts(root.resolve())
-    if scripts is None:
-        print("syuki: 文体パックの scripts が見つからないので init_work.py は飛ばした", file=sys.stderr)
-        return 0
-    return subprocess.run([sys.executable, str(scripts / "init_work.py"), str(root)]).returncode
+    return 0
 
 
 def at_arg(work: Work, text):

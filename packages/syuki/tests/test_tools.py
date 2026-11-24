@@ -14,6 +14,28 @@ def test_init_creates_skeleton_and_checks_clean(tmp_path, capsys):
     assert main(["init", str(root)]) == 0
     assert "既存:" in capsys.readouterr().out
     assert main(["check", "--work", str(root)]) == 0
+    assert "緩急" not in (root / "style/profile.toml").read_text(encoding="utf-8")  # 既定は general の雛形
+
+
+def test_init_copies_templates_of_the_chosen_pack(tmp_path):
+    root = tmp_path / "novel"
+    root.mkdir()
+    (root / "roles.toml").write_text('[style]\npack = "light-novel"\n', encoding="utf-8")
+    assert main(["init", str(root)]) == 0
+    assert 'rhythm = "緩急"' in (root / "style/profile.toml").read_text(encoding="utf-8")
+    assert (root / "characters.md").is_file()
+
+
+def test_init_uses_templates_of_the_installed_harness(tmp_path):
+    pack = tmp_path / ".agents" / "packs" / "mine"
+    (pack / "tpl" / "style").mkdir(parents=True)
+    (pack / "pack.toml").write_text('name = "mine"\n[provides]\ntemplates = "tpl/"\n', encoding="utf-8")
+    (pack / "tpl" / "style" / "profile.toml").write_text("# mine\n", encoding="utf-8")
+    (tmp_path / ".agents" / "roles.toml").write_text('[style]\npack = "mine"\n', encoding="utf-8")
+    root = tmp_path / "novel"
+    assert main(["init", str(root)]) == 0
+    assert (root / "style/profile.toml").read_text(encoding="utf-8") == "# mine\n"
+    assert not (root / "plot.md").exists()
 
 
 @pytest.mark.skipif(shutil.which("uv") is None, reason="uv が無い")

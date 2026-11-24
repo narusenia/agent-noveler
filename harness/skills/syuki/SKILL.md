@@ -54,4 +54,4 @@ syuki <コマンド> --work <作品> [--json]  # ほかの場所から呼ぶ
 
 ## 新しい作品
 
-`syuki init <作品>` — `syuki.yml` と `ledger/` の雛形を作り、文体パックの `init_work.py`（あれば） も呼ぶ。作品だけの照合は `ledger/checks.py` に書く（`references/schema.md` の最後）。
+`syuki init <作品>` — `syuki.yml` と `ledger/` の雛形を作り、使う文体パックの雛形（`pack.toml` の `templates`。`plot.md`・`style/profile.toml` など）も写す。作品だけの照合は `ledger/checks.py` に書く（`references/schema.md` の最後）。

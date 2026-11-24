@@ -10,7 +10,8 @@ skills = ["light-novel"]            # 書き方・直し方・lint（check_style
 rules = ["prose-tools.md", "light-novel.md"]          # 本文にlint と校正を当てるときの優先順位
 #                                     light-novel.md はこのパックを使うときの決まり（lint、会話、口調）
 agents = []                         # 足す役は無い（slop は核の役。ラノベの見方は roles/slop.md）
-first_read_prompt = "first-read/prompt.md"   # 初見読者の人物像（ライトノベルをよく読む十代後半〜二十代）
+templates = "templates/"            # syuki init が作品のフォルダに写す雛形（作品のフォルダと同じ並び。中身はスキルの assets/ へのリンク）
+first_read_prompt ="first-read/prompt.md"   # 初見読者の人物像（ライトノベルをよく読む十代後半〜二十代）
 research = "docs/research.md"       # パックの根拠にした論文と資料の調査
 roles = "roles/"                    # 役ごとのジャンルの見方。.agents/style/roles/<役>.md として核の手順書が読む
 

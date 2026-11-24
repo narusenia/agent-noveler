@@ -1,0 +1,1 @@
+../../skills/light-novel/assets/keep.md
