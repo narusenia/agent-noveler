@@ -40,7 +40,7 @@ def cmd_impact(work: Work, args) -> int:
 
 def cmd_render(work: Work, args) -> int:
     written = render.render(work)
-    emit(args, {"written": written}, [f"書いた: {w}" for w in written])
+    emit(args, {"written": written}, [f"Wrote: {w}" for w in written])
     return 0
 
 
@@ -116,7 +116,7 @@ def excess_report(work: Work, target, base: list, top: int, cache: dict) -> list
 
 
 def excess_lines(rows: list[dict]) -> list[str]:
-    return [f"- [出すぎ・判断] 「{'・'.join(r['words'])}」{r['count']}回（一万語あたり {r['per_10k']}、基準 {r['base_per_10k']}、z {r['z']}）"
+    return [f"- [excess, judgment] 「{'・'.join(r['words'])}」 {r['count']} times (per 10k words {r['per_10k']}, baseline {r['base_per_10k']}, z {r['z']})"
             for r in rows]
 
 
@@ -152,11 +152,11 @@ def cmd_endings(work: Work, args, scripts: Path) -> int:
     data = endings.compare(endings.tally(rows, lambda r: work.people.get(r["speaker"], r["speaker"])), samples)
 
     def fmt(pairs):
-        return "、".join(f"{e} {k}" for e, k in pairs) or "なし"
-    lines = [f"台詞の文末（話者の決まった台詞 {len(rows)}件、答えの表 {answered}/{len(chs)}章。判断の材料）"]
+        return ", ".join(f"{e} {k}" for e, k in pairs) or "none"
+    lines = [f"Dialogue endings ({len(rows)} lines with a known speaker, answer tables for {answered}/{len(chs)} chapters; for judgment)"]
     for d in data:
-        off = "見本なし" if d["off_sample"] is None else f"見本に無い文末 {d['off_sample']:.0%}（{fmt(d['off_top'])}）"
-        lines.append(f"- {d['speaker']}（{d['sentences']}文）本文: {fmt(d['top'])} / 見本: {fmt(d['sample_top'])} / {off}")
+        off = "no samples" if d["off_sample"] is None else f"off-sample endings {d['off_sample']:.0%} ({fmt(d['off_top'])})"
+        lines.append(f"- {d['speaker']} ({d['sentences']} sentences) manuscript: {fmt(d['top'])} / samples: {fmt(d['sample_top'])} / {off}")
     emit(args, data, lines)
     return 0
 
@@ -183,7 +183,7 @@ def cmd_style(work: Work, args) -> int:
     if args.action in ("endings", "heat"):
         scripts = check.lint_scripts(work.root)
         if scripts is None:
-            print("syuki: 文体パックの scripts が見つからない", file=sys.stderr)
+            print("syuki: style pack scripts not found", file=sys.stderr)
             return 2
         return (cmd_endings if args.action == "endings" else cmd_heat)(work, args, scripts)
     if args.action == "excess":
@@ -197,14 +197,14 @@ def cmd_style(work: Work, args) -> int:
             print(f"syuki: {e}", file=sys.stderr)
             return 2
         except ImportError:
-            print("syuki: sudachipy が要る（uv run --extra ja）", file=sys.stderr)
+            print("syuki: sudachipy is required (uv run --extra ja)", file=sys.stderr)
             return 2
         emit(args, {"chapter": target.rel, "base": [c.rel for c in base], "excess": rows},
-             [f"## {target.rel}（基準: {', '.join(c.id for c in base)}）", *excess_lines(rows)])
+             [f"## {target.rel} (baseline: {', '.join(c.id for c in base)})", *excess_lines(rows)])
         return 0
     scripts = check.lint_scripts(work.root)
     if scripts is None:
-        print("syuki: 文体パックの scripts が見つからない", file=sys.stderr)
+        print("syuki: style pack scripts not found", file=sys.stderr)
         return 2
     mdir = work.root / work.conf.get("manuscript", "manuscript")
 
@@ -232,15 +232,15 @@ def cmd_style(work: Work, args) -> int:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(text, encoding="utf-8")
     data = {"added": [p["key"] for p in added], "skipped": skipped, "file": str(out.relative_to(work.root))}
-    lines = [f"{'足す' if args.dry_run else '足した'}: {k}" for k in data["added"]] or ["足す組なし"]
-    emit(args, data, lines + [f"外した: {x}" for x in skipped] + [f"→ {data['file']}"])
+    lines = [f"{'Would add' if args.dry_run else 'Added'}: {k}" for k in data["added"]] or ["No pairs to add"]
+    emit(args, data, lines + [f"Skipped: {x}" for x in skipped] + [f"→ {data['file']}"])
     return 0
 
 
 def cmd_lint(work: Work, args) -> int:
     scripts = check.lint_scripts(work.root)
     if scripts is None:
-        print("syuki: 文体パックの scripts が見つからない", file=sys.stderr)
+        print("syuki: style pack scripts not found", file=sys.stderr)
         return 2
     try:
         chs = [work.chapter(*reversed(t.split("/", 1))) for t in args.chapters] or \
@@ -275,9 +275,9 @@ def cmd_lint(work: Work, args) -> int:
         if args.json:
             results.append({"chapter": ch.rel, "tool": "excess", "code": 0, "out": json.dumps(rows, ensure_ascii=False)})
         elif rows is None:
-            print("（sudachipy が無いので出すぎた語の比較を飛ばした。uv run --extra ja で入る）")
+            print("(sudachipy is not installed, so the excess-word comparison was skipped. Install it with uv run --extra ja)")
         elif rows:
-            print("出すぎた語（同じ巻のほかの章と比べて。判断の材料）", *excess_lines(rows), sep="\n")
+            print("Excess words (compared with the other chapters of the volume; for judgment)", *excess_lines(rows), sep="\n")
     if args.json:
         print(json.dumps(results, ensure_ascii=False, indent=1))
     return 1 if worst else 0
@@ -312,7 +312,7 @@ def cmd_init(args) -> int:
     # 文体パックの雛形（plot.md、style/profile.toml など）。作品のフォルダと同じ並びで置いてある
     templates = check.pack_templates(root.resolve())
     if templates is None:
-        print("syuki: 文体パックの雛形（pack.toml の templates）が見つからないので、plot.md や style/ は作らなかった", file=sys.stderr)
+        print("syuki: style pack templates (templates in pack.toml) not found, so plot.md and style/ were not created", file=sys.stderr)
     else:
         for f in sorted(templates.rglob("*")):
             if f.is_file():
@@ -320,11 +320,11 @@ def cmd_init(args) -> int:
     for rel, text in files.items():
         path = root / rel
         if path.exists():
-            print(f"既存: {path}")
+            print(f"Exists: {path}")
             continue
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
-        print(f"作成: {path}")
+        print(f"Created: {path}")
     (root / "manuscript" / "vol1").mkdir(parents=True, exist_ok=True)
     (root / "ledger" / "vol1" / "notes").mkdir(parents=True, exist_ok=True)
     return 0
@@ -364,7 +364,7 @@ def cmd_query(work: Work, args) -> int:
         print(f"syuki: {e}", file=sys.stderr)
         return 2
     if work.problems:
-        print(f"syuki: 台帳に形の問題が {len(work.problems)} 件（syuki check で見る）", file=sys.stderr)
+        print(f"syuki: {len(work.problems)} ledger shape problem(s) (see syuki check)", file=sys.stderr)
     emit(args, data, lines)
     return 0
 
@@ -373,80 +373,80 @@ def build_parser() -> argparse.ArgumentParser:
     common = argparse.ArgumentParser(add_help=False)
     # pnpm から呼ぶと作業フォルダがリポジトリ直下になるので、呼んだ所（INIT_CWD）から探す
     common.add_argument("--work", default=os.environ.get("INIT_CWD", "."),
-                        help="syuki.yml か、作品のフォルダ（既定は今いるフォルダから上へたどる）")
-    common.add_argument("--json", action="store_true", help="JSON で出す")
-    p = argparse.ArgumentParser(prog="syuki", description="小説の執筆支援（台帳・引用・照合）")
+                        help="syuki.yml or the work folder (default: search up from the current folder)")
+    common.add_argument("--json", action="store_true", help="output JSON")
+    p = argparse.ArgumentParser(prog="syuki", description="Novel writing support (ledger, quotes, checks)")
     sub = p.add_subparsers(dest="cmd", required=True)
-    s = sub.add_parser("check", parents=[common], help="台帳と本文を照合する")
+    s = sub.add_parser("check", parents=[common], help="check the ledger against the manuscript")
     s.set_defaults(func=cmd_check)
-    s = sub.add_parser("impact", parents=[common], help="本文の差分が台帳に与える影響")
-    s.add_argument("range", nargs="?", default="HEAD", help="git の範囲（既定は HEAD と作業中の本文の差）")
+    s = sub.add_parser("impact", parents=[common], help="how a manuscript diff affects the ledger")
+    s.add_argument("range", nargs="?", default="HEAD", help="git range (default: HEAD vs. the working manuscript)")
     s.set_defaults(func=cmd_impact)
     for name, help_, pos in (
-        ("brief", "場面を書く前の要約（カード・人物の状態・場所・文書・伏線）", ["point"]),
-        ("search", "本文・台帳・設定集から語を探す", ["word"]),
-        ("state", "人物の状態（知っていること・気持ち・持ち物・居場所）", ["person"]),
-        ("knows", "秘密を誰が知っているか", ["secret"]),
-        ("where", "持ち物がどこにあるか", ["item"]),
-        ("threads", "伏線ごとの置いた・匂わせた・回収した所と予定", []),
-        ("list", "台帳の名前の一覧（characters・terms・places・items・secrets・threads・documents）", ["kind"]),
-        ("timeline", "場面を作中の日時順に並べる", []),
-        ("recap", "本文の順のあらすじと出来事", []),
+        ("brief", "summary before writing a scene (card, character state, place, documents, threads)", ["point"]),
+        ("search", "search the manuscript, ledger and setting notes for a word", ["word"]),
+        ("state", "a character's state (knowledge, feelings, items, location)", ["person"]),
+        ("knows", "who knows a secret", ["secret"]),
+        ("where", "where an item is", ["item"]),
+        ("threads", "where each thread was planted, hinted and paid off, and its plan", []),
+        ("list", "list ledger names (characters, terms, places, items, secrets, threads, documents)", ["kind"]),
+        ("timeline", "scenes in story-time order", []),
+        ("recap", "summaries and events in manuscript order", []),
     ):
         s = sub.add_parser(name, parents=[common], help=help_)
         for a in pos:
             s.add_argument(a)
         if name in ("search", "state", "knows", "where", "threads"):
-            s.add_argument("--at", help="章:場面。その場面の頭の時点で見る")
+            s.add_argument("--at", help="chapter:scene; look as of the start of that scene")
         if name == "recap":
-            s.add_argument("--until", help="章（その章の終わりまで）か章:場面")
+            s.add_argument("--until", help="chapter (up to its end) or chapter:scene")
         s.set_defaults(func=cmd_query)
-    s = sub.add_parser("render", parents=[common], help="台帳から人物・設定・地図・文書・状態表の Markdown を作る")
+    s = sub.add_parser("render", parents=[common], help="generate Markdown for characters, setting, map, documents and state tables from the ledger")
     s.set_defaults(func=cmd_render)
-    s = sub.add_parser("stages", parents=[common], help="人物ごとの好意の段階と、しばらく出ていない人物")
+    s = sub.add_parser("stages", parents=[common], help="affection stage per character, and characters absent for a while")
     s.set_defaults(func=cmd_stages)
-    s = sub.add_parser("ask", parents=[common], help="作者に確かめたいことの待ち行列")
+    s = sub.add_parser("ask", parents=[common], help="queue of questions for the author")
     acts = s.add_subparsers(dest="action", required=True)
-    a = acts.add_parser("add", parents=[common], help="確かめたいことを足す")
+    a = acts.add_parser("add", parents=[common], help="add a question")
     a.add_argument("text")
-    a.add_argument("--at", help="章:場面")
-    a.add_argument("--settle", metavar="ANSWER", help="足してすぐ決着させる（答え）")
-    a.add_argument("--quiet", action="store_true", help="足した ID だけを出す")
-    a = acts.add_parser("list", parents=[common], help="未決着の一覧と【本文仮】の確定待ち")
-    a.add_argument("--all", action="store_true", help="決着済みも出す")
-    a.add_argument("--questions", action="store_true", help="作者への問いだけを出す（【本文仮】の確定待ちを出さない）")
-    a = acts.add_parser("settle", parents=[common], help="決着を記録する")
+    a.add_argument("--at", help="chapter:scene")
+    a.add_argument("--settle", metavar="ANSWER", help="add and settle at once (the answer)")
+    a.add_argument("--quiet", action="store_true", help="print only the new ID")
+    a = acts.add_parser("list", parents=[common], help="open questions and 【本文仮】 items awaiting confirmation")
+    a.add_argument("--all", action="store_true", help="include settled questions")
+    a.add_argument("--questions", action="store_true", help="only questions for the author (omit 【本文仮】 items)")
+    a = acts.add_parser("settle", parents=[common], help="record a settlement")
     a.add_argument("id")
     a.add_argument("answer")
     s.set_defaults(func=cmd_edit)
-    s = sub.add_parser("add", parents=[common], help="出来事を events.yaml に足す（時点の順に入れる）")
+    s = sub.add_parser("add", parents=[common], help="add an event to events.yaml (kept in point order)")
     s.add_argument("kind", help=" / ".join(KINDS))
-    s.add_argument("--at", required=True, help="章:場面")
-    s.add_argument("--who", action="append", help="人物（何度でも）")
+    s.add_argument("--at", required=True, help="chapter:scene")
+    s.add_argument("--who", action="append", help="character (repeatable)")
     s.add_argument("--what")
     s.add_argument("--to")
     s.add_argument("--from", dest="from_")
-    s.add_argument("--src", help="引用「章「本文の字」」")
+    s.add_argument("--src", help="quote 章「本文の字」")
     s.add_argument("--note")
     s.set_defaults(func=cmd_edit)
-    s = sub.add_parser("lint", parents=[common], help="文体パックの lint（check_style・keep_check）を章ごとに回す")
-    s.add_argument("chapters", nargs="*", help="章（既定は最後の巻の全章）")
-    s.add_argument("--voice", action="store_true", help="voice_check の台詞の表も出す")
+    s = sub.add_parser("lint", parents=[common], help="run the style pack lint (check_style, keep_check) per chapter")
+    s.add_argument("chapters", nargs="*", help="chapters (default: every chapter of the last volume)")
+    s.add_argument("--voice", action="store_true", help="also print the voice_check dialogue sheet")
     s.set_defaults(func=cmd_lint)
-    s = sub.add_parser("style", parents=[common], help="文体の解析（判断の材料）")
+    s = sub.add_parser("style", parents=[common], help="style analysis (for judgment)")
     acts = s.add_subparsers(dest="action", required=True)
-    a = acts.add_parser("contrast", parents=[common], help="作者の赤から温度の対の候補を style/samples/contrast-candidates.md に足す")
-    a.add_argument("--dry-run", action="store_true", help="書かずに足す組だけを出す")
-    a = acts.add_parser("excess", parents=[common], help="章で基準の章より出すぎた語の並び（原形の 1〜3 語、対数オッズ）")
-    a.add_argument("chapter", help="章（巻が二つ以上なら vol1/04）")
-    a.add_argument("--base", help="基準の章（カンマ区切り。既定は同じ巻のほかの章）")
+    a = acts.add_parser("contrast", parents=[common], help="add contrast pair candidates from the author's edits to style/samples/contrast-candidates.md")
+    a.add_argument("--dry-run", action="store_true", help="print the pairs without writing")
+    a = acts.add_parser("excess", parents=[common], help="word n-grams overused in a chapter vs. baseline chapters (1-3 lemmas, log-odds)")
+    a.add_argument("chapter", help="chapter (vol1/04 if there are several volumes)")
+    a.add_argument("--base", help="baseline chapters (comma-separated; default: the other chapters of the volume)")
     a.add_argument("--top", type=int, default=20)
-    a = acts.add_parser("endings", parents=[common], help="台詞の文末を人物ごとに数え、口調サンプルの文末とのずれを出す")
-    a.add_argument("chapters", nargs="*", help="章（既定は最後の巻の全章）")
-    a = acts.add_parser("heat", parents=[common], help="段落ごとの声・声なし区間・落とし（check_style の判定。shosai が色を付ける）")
-    a.add_argument("chapter", help="章（巻が二つ以上なら vol1/04）")
+    a = acts.add_parser("endings", parents=[common], help="count dialogue endings per character and compare with the voice samples")
+    a.add_argument("chapters", nargs="*", help="chapters (default: every chapter of the last volume)")
+    a = acts.add_parser("heat", parents=[common], help="voice, no-voice runs and drops per paragraph (check_style's judgment; shosai colors them)")
+    a.add_argument("chapter", help="chapter (vol1/04 if there are several volumes)")
     s.set_defaults(func=cmd_style)
-    s = sub.add_parser("init", help="作品のフォルダに syuki.yml と ledger/ の雛形を作る")
+    s = sub.add_parser("init", help="create syuki.yml and ledger/ templates in a work folder")
     s.add_argument("dir", nargs="?", default=".")
     s.set_defaults(func=None)
     return p

@@ -14,7 +14,7 @@ def summary(pars: list[dict]) -> dict:
 
 def lines(file: str, pars: list[dict]) -> list[str]:
     s = summary(pars)
-    out = [f"## {file}（声なし区間 {len(s['runs'])}・落とし {len(s['drops'])}。判断の材料）"]
-    out += [f"- [声なし] {r['start']}〜{r['lines'][-1]}行目（{r['sentences']}文）" for r in s["runs"]]
-    out += [f"- [落とし] {n}行目" for n in s["drops"]]
+    out = [f"## {file} (no-voice runs {len(s['runs'])}, drops {len(s['drops'])}; for judgment)"]
+    out += [f"- [声なし] lines {r['start']}-{r['lines'][-1]} ({r['sentences']} sentences)" for r in s["runs"]]
+    out += [f"- [落とし] line {n}" for n in s["drops"]]
     return out

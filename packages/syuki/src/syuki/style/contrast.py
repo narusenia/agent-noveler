@@ -4,8 +4,8 @@ import re
 KINDS = {"replace", "insert", "delete"}  # ルビ・傍点は記法の直しなので外す
 STATUSES = {"applied", "done"}
 MARK = "# 【候補】作者の赤から"
-INTRO = ("`syuki style contrast` が足した組。声なしの文が減った順。良いが今の本文、悪いが赤の前。"
-         "作者が残す組を選んだら、残さない組を消す。")
+INTRO = ("`syuki style contrast` が足した組です。声なしの文が減った順に並べています。良いが今の本文、悪いが赤の前です。"
+         "作者が残す組を選んだら、残さない組を消してください。")
 
 
 def locate(lines: list[str], e: dict) -> int | None:
@@ -30,14 +30,14 @@ def pairs(vol: str, entries: list[dict], read) -> tuple[list[dict], list[str]]:
         lines = read(e["file"])
         i = locate(lines, e) if lines is not None else None
         if i is None:
-            skipped.append(f"{key}: 今の本文に見つからない")
+            skipped.append(f"{key}: not found in the current manuscript")
             continue
         after = lines[i]
         old = e.get("prefix", "") + e["before"] + e.get("suffix", "")
         new = e.get("prefix", "") + e["after"] + e.get("suffix", "")
         before = old if not new.strip("　 ") else after.replace(new, old, 1)
         if not narration(before) or (after.strip("　 ") and not narration(after)):
-            skipped.append(f"{key}: 地の文でない")
+            skipped.append(f"{key}: not narration")
             continue
         out.append({"key": key, "file": e["file"], "after": after.strip("　 ") and after, "before": before})
     return out, skipped

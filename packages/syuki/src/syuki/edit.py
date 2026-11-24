@@ -29,17 +29,17 @@ def ask_add(work: Work, q: str, at: str | None, answer: str | None = None):
     if answer is not None:  # 足して即決着
         row.update(status="settled", answer=answer, settled=today())
     _write_questions(work, rows + [row])
-    return row, [f"足した: {row['id']} {q}" + (f" → 決着: {answer}" if answer is not None else "")]
+    return row, [f"Added: {row['id']} {q}" + (f" → settled: {answer}" if answer is not None else "")]
 
 
 def ask_settle(work: Work, qid: str, answer: str):
     rows = work.rows("questions")
     row = next((r for r in rows if r.get("id") == qid), None)
     if row is None:
-        raise ValueError(f"{qid} が questions.yaml に無い")
+        raise ValueError(f"{qid} is not in questions.yaml")
     row.update(status="settled", answer=answer, settled=today())
     _write_questions(work, rows)
-    return row, [f"決着: {qid} {answer}"]
+    return row, [f"Settled: {qid} {answer}"]
 
 
 def _write_questions(work: Work, rows):
@@ -55,18 +55,18 @@ def ask_list(work: Work, all_: bool, questions_only: bool = False):
         for i, x in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
             if PROVISIONAL in x:
                 prov.append({"where": f"{path.relative_to(work.root).as_posix()}:{i}", "text": x.strip().lstrip("- ")})
-    out = [f"## 作者に確認 {len(qs)} 件"]
-    out += [f"- {r.get('id')}［{r.get('status', 'open')}］{r.get('q')}" + (f"（{r['at']}）" if r.get("at") else "")
+    out = [f"## Questions for the author: {len(qs)}"]
+    out += [f"- {r.get('id')} [{r.get('status', 'open')}] {r.get('q')}" + (f"（{r['at']}）" if r.get("at") else "")
             + (f" → {r['answer']}" if r.get("answer") else "") for r in qs]
     if questions_only:
         return {"questions": qs}, out
-    out += [f"## {PROVISIONAL}の確定待ち {len(prov)} 件", *[f"- {p['where']} {p['text']}" for p in prov]]
+    out += [f"## {PROVISIONAL} awaiting confirmation: {len(prov)}", *[f"- {p['where']} {p['text']}" for p in prov]]
     return {"questions": qs, "provisional": prov}, out
 
 
 def add_event(work: Work, kind: str, at: str, **fields):
     if kind not in KINDS:
-        raise ValueError(f"種類「{kind}」は {' / '.join(KINDS)} のどれか")
+        raise ValueError(f"kind {kind!r} must be one of {' / '.join(KINDS)}")
     vol = work.ch_of(pt := work.point(at)).vol
     row = {"at": at, "kind": kind}
     for k in ("who", "what", "to", "from", "src", "note"):
@@ -75,7 +75,7 @@ def add_event(work: Work, kind: str, at: str, **fields):
             row[k] = v[0] if isinstance(v, list) and len(v) == 1 else v
     missing = [k for k in KINDS[kind] if k not in row]
     if missing:
-        raise ValueError(f"{kind} には {'・'.join(missing)} が要る")
+        raise ValueError(f"{kind} needs {', '.join(missing)}")
     path = work.ledger_dir / vol / "events.yaml"
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = path.read_text(encoding="utf-8").split("\n") if path.is_file() else []
@@ -90,4 +90,4 @@ def add_event(work: Work, kind: str, at: str, **fields):
             lines.pop()
         lines += text
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return row, [f"足した: {path.relative_to(work.root).as_posix()} {json.dumps(row, ensure_ascii=False)}（名前の照合は syuki check）"]
+    return row, [f"Added: {path.relative_to(work.root).as_posix()} {json.dumps(row, ensure_ascii=False)} (run syuki check to verify names)"]

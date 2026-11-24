@@ -3,9 +3,9 @@ from conftest import load
 
 def test_render_writes_generated_markdown(sample, run):
     code, out = run(sample, "render")
-    assert code == 0 and "書いた: plot/vol1-state.md" in out
+    assert code == 0 and "Wrote: plot/vol1-state.md" in out
     chars = (sample / "charactor.md").read_text(encoding="utf-8")
-    assert "生成物。手で直さない" in chars
+    assert "生成物です。手で直さないでください" in chars
     assert "## ハル・ミナト\n\n- 口癖: 「せーので」" in chars
     assert "## 灯台守のじいさん（端役）" in chars
     details = (sample / "details.md").read_text(encoding="utf-8")
@@ -23,10 +23,10 @@ def test_ask_cycle(sample, run):
     assert "Q-002" in out
     run(sample, "ask", "settle", "Q-001", "守の昔の仲間")
     _, out = run(sample, "ask", "list")
-    assert "Q-002［open］" in out and "Q-001" not in out
+    assert "Q-002 [open]" in out and "Q-001" not in out
     assert "ledger/world.yaml:3 【本文仮】灯台の鍵は一本しかない" in out
     _, out = run(sample, "ask", "list", "--all")
-    assert "Q-001［settled］手紙の差出人は誰か（02:1） → 守の昔の仲間" in out
+    assert "Q-001 [settled] 手紙の差出人は誰か（02:1） → 守の昔の仲間" in out
     code, _ = run(sample, "check")
     assert code == 0
 
@@ -38,10 +38,10 @@ def test_stages_and_absent(sample, run):
     path.write_text(path.read_text(encoding="utf-8").replace("cast: [ソラ, 守, ハル]", "cast: [ソラ, 守]")
                     .replace("cast: [ソラ, ハル], summary: 二人", "cast: [ソラ], summary: 二人"), encoding="utf-8")
     _, out = run(sample, "stages")
-    assert "| ハル | 他人 | 気になる（不在） | 01 |" in out and "しばらく出ていない" not in out
+    assert "| ハル | 他人 | 気になる (absent) | 01 |" in out and "absent for" not in out
     path.write_text(path.read_text(encoding="utf-8").replace("cast: [ソラ, ハル]", "cast: [ソラ]"), encoding="utf-8")
     _, out = run(sample, "stages")
-    assert "しばらく出ていない（2 章以上）: ハル" in out
+    assert "absent for 2+ chapters: ハル" in out
 
 
 def test_add_keeps_order(sample, run):
@@ -64,7 +64,7 @@ def test_add_rejects_bad_input(sample, run):
 
 def test_ask_list_questions_only(sample, run):
     _, out = run(sample, "ask", "list", "--questions")
-    assert "Q-001［open］" in out and "【本文仮】" not in out
+    assert "Q-001 [open]" in out and "【本文仮】" not in out
     _, out = run(sample, "ask", "list", "--questions", "--json")
     assert "provisional" not in out
 
@@ -73,5 +73,5 @@ def test_ask_add_settle_quiet(sample, run):
     code, out = run(sample, "ask", "add", "Q-001 と同じ人か", "--at", "02:1", "--settle", "別人", "--quiet")
     assert code == 0 and out == "Q-002\n"
     _, out = run(sample, "ask", "list", "--all", "--questions")
-    assert "Q-002［settled］Q-001 と同じ人か（02:1） → 別人" in out
-    assert "Q-001［open］" in out
+    assert "Q-002 [settled] Q-001 と同じ人か（02:1） → 別人" in out
+    assert "Q-001 [open]" in out

@@ -17,7 +17,7 @@ def test_contrast_pairs_and_merge():
         ("vol1 R-1", "　走った、そして歯車が止まった。", "　走った、歯車が止まった。"),
         ("vol1 R-2", "", "　輪が砕けた。"),
     ]
-    assert skipped == ["vol1 R-3: 今の本文に見つからない", "vol1 R-4: 地の文でない"]
+    assert skipped == ["vol1 R-3: not found in the current manuscript", "vol1 R-4: not narration"]
     got[0]["before_voice"], got[0]["after_voice"] = {"sentences": 1, "voiced": 1}, {"sentences": 1, "voiced": 0}
     got[1]["before_voice"], got[1]["after_voice"] = {"sentences": 1, "voiced": 0}, {"sentences": 0, "voiced": 0}
     text, added = contrast.merge("# 温度の対\n", got)
@@ -76,4 +76,4 @@ def test_heat_summary_groups_runs_and_drops():
     run = {"start": 3, "sentences": 12}
     pars = [{"line": 3, "run": run, "drop": False}, {"line": 5, "run": run, "drop": True}, {"line": 9, "run": None, "drop": True}]
     assert heat.summary(pars) == {"runs": [{"start": 3, "sentences": 12, "lines": [3, 5]}], "drops": [5, 9]}
-    assert heat.lines("vol1/01.kym.txt", pars)[1:] == ["- [声なし] 3〜5行目（12文）", "- [落とし] 5行目", "- [落とし] 9行目"]
+    assert heat.lines("vol1/01.kym.txt", pars)[1:] == ["- [声なし] lines 3-5 (12 sentences)", "- [落とし] line 5", "- [落とし] line 9"]

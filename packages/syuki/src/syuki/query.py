@@ -67,17 +67,17 @@ def person_state(work: Work, s: State, who: str) -> dict:
 
 
 def person_lines(d: dict) -> list[str]:
-    out = [f"- {d['name']}" + (f"（居場所: {d['place']} {d['place_at']}）" if d["place"] else "")]
+    out = [f"- {d['name']}" + (f" (place: {d['place']} {d['place_at']})" if d["place"] else "")]
     if d["knows"]:
-        out.append("  知っている: " + "、".join(f"{k['what']}（{k['at']}）" for k in d["knows"]))
+        out.append("  knows: " + "、".join(f"{k['what']}（{k['at']}）" for k in d["knows"]))
     if d["unknown_secrets"]:
-        out.append("  知らない秘密: " + "、".join(d["unknown_secrets"]))
+        out.append("  unknown secrets: " + "、".join(d["unknown_secrets"]))
     if d["feels"]:
-        out.append("  気持ち: " + "、".join(f"{f['to']}→{f['what']}（{f['at']}）" for f in d["feels"]))
+        out.append("  feels: " + "、".join(f"{f['to']}→{f['what']}（{f['at']}）" for f in d["feels"]))
     if d["items"]:
-        out.append("  持ち物: " + "、".join(d["items"]))
+        out.append("  items: " + "、".join(d["items"]))
     if d.get("stage"):
-        out.append(f"  好意の段階: {d['stage']['what']}（{d['stage']['at']}）")
+        out.append(f"  stage: {d['stage']['what']}（{d['stage']['at']}）")
     return out
 
 
@@ -133,33 +133,33 @@ def brief(work: Work, pt: Point):
     }
     out = [f"# {label} {data['when']} {data['place'] or ''}".rstrip() + (f"｜{data['summary']}" if data["summary"] else "")]
     if not sc:
-        out.append("（場面の表に無い）")
+        out.append("(not in the scene table)")
     if text:
-        out += ["", "## カード", *text]
+        out += ["", "## Card", *text]
     if data["notes"]:
-        out += ["", "## 筋道メモ", *data["notes"]]
+        out += ["", "## Notes", *data["notes"]]
     if cast:
-        out += ["", "## 人物（場面の頭）"]
+        out += ["", "## Cast (at the start of the scene)"]
         for d in data["cast"]:
             out += person_lines(d)
     if place or routes:
-        out += ["", "## 場所"]
+        out += ["", "## Place"]
         if place:
             out.append(f"- {place['name']}: " + "／".join(place.get(k) for k in ("where", "looks") if place.get(k)))
             out += [f"  - {n}" for n in place.get("notes") or []]
-        out += [f"- 道のり {r['from']}→{r['to']}: " + "／".join(x for x in (r.get("via"), r.get("time")) if x) for r in routes]
+        out += [f"- route {r['from']}→{r['to']}: " + "／".join(x for x in (r.get("via"), r.get("time")) if x) for r in routes]
     if docs:
-        out += ["", "## 文書の正本"]
+        out += ["", "## Documents"]
         for d in data["documents"]:
-            out += [f"- {d['title']}（{d['id']}）", *[f"  {x}" for x in (d["text"] or "（文面なし）").rstrip().split("\n")]]
+            out += [f"- {d['title']}（{d['id']}）", *[f"  {x}" for x in (d["text"] or "(no text)").rstrip().split("\n")]]
     if near:
-        out += ["", "## 近くの伏線"]
+        out += ["", "## Nearby threads"]
         for t in near:
-            done = "、".join(f"{ja(x['kind'])} {x['at']}" for x in t["done"])
-            plan = "、".join(f"{ja(p['do'])} {p['at']}" + (f"（{p['note']}）" if p["note"] else "") for p in t["plan"])
-            out.append(f"- {t['id']}: {t['desc']}｜済: {done or 'なし'}｜予定: {plan}")
+            done = ", ".join(f"{x['kind']} {x['at']}" for x in t["done"])
+            plan = ", ".join(f"{p['do']} {p['at']}" + (f"（{p['note']}）" if p["note"] else "") for p in t["plan"])
+            out.append(f"- {t['id']}: {t['desc']} | done: {done or 'none'} | planned: {plan}")
     if questions:
-        out += ["", "## 作者に確認中", *[f"- {q['id']} {q['q']}" for q in data["questions"]]]
+        out += ["", "## Open questions for the author", *[f"- {q['id']} {q['q']}" for q in data["questions"]]]
     return data, out
 
 
@@ -172,23 +172,23 @@ def brief_ahead(work: Work, text: str):
     scene = int(m["scene"] or 1)
     text_, notes = card(work, ch, scene), notes_section(work, ch, scene)
     if not text_ and not notes:
-        raise NotWritten(f"章 {m['ch']} が {vol} の本文にも plot にも無い")
+        raise NotWritten(f"chapter {m['ch']} is in neither the manuscript nor the plot of {vol}")
     vi = work.volumes.index(vol)
     prev = next((c for c in reversed(work.chapters) if c.vi <= vi), None)
     s = replay(work, work.end_of(prev), inclusive=True) if prev else replay(work, Point(-1, 0, 0))
     cast = list(dict.fromkeys(work.people.get(n, n) for sc in work.scenes if prev and (sc["_pt"].vi, sc["_pt"].ci) == (prev.vi, prev.ci)
                               for n in sc.get("cast") or []))
     label = f"{m['ch']}:{scene}" if len(work.volumes) == 1 else f"{vol}/{m['ch']}:{scene}"
-    after = work.label(work.end_of(prev)) if prev else "はじめ"
+    after = work.label(work.end_of(prev)) if prev else "the start"
     data = {"at": label, "unwritten": True, "after": after, "card": text_, "notes": notes,
             "cast": [person_state(work, s, n) for n in cast]}
-    out = [f"# {label}（本文まだ。人物は {after} の終わりの状態）"]
+    out = [f"# {label} (not written yet; cast as of the end of {after})"]
     if text_:
-        out += ["", "## カード", *text_]
+        out += ["", "## Card", *text_]
     if notes:
-        out += ["", "## 筋道メモ", *notes]
+        out += ["", "## Notes", *notes]
     if cast:
-        out += ["", f"## 人物（{after} の終わり）"]
+        out += ["", f"## Cast (end of {after})"]
         for d in data["cast"]:
             out += person_lines(d)
     return data, out
@@ -234,14 +234,14 @@ def search(work: Work, word: str, at: Point | None = None):
     data = {"word": word, "manuscript": text_hits, "ledger": ledger_hits, "markdown": md}
     out = []
     for title, rows, fmt in (
-        ("本文", text_hits, lambda h: f"{h['where']}（{h['scene']}）{h['text']}"),
-        ("台帳", ledger_hits, lambda h: f"{h['where']} {h['text']}"),
-        ("設定集・plot", md, lambda h: f"{h['where']} [{h['heading']}]{''.join(h['labels'])} {h['text']}"),
+        ("Manuscript", text_hits, lambda h: f"{h['where']} ({h['scene']}) {h['text']}"),
+        ("Ledger", ledger_hits, lambda h: f"{h['where']} {h['text']}"),
+        ("Setting and plot", md, lambda h: f"{h['where']} [{h['heading']}]{''.join(h['labels'])} {h['text']}"),
     ):
-        out.append(f"## {title} {len(rows)} 件")
+        out.append(f"## {title}: {len(rows)} hit{'' if len(rows) == 1 else 's'}")
         out += [fmt(h) for h in rows[:LIMIT]]
         if len(rows) > LIMIT:
-            out.append(f"（ほか {len(rows) - LIMIT} 件。--json で全部）")
+            out.append(f"({len(rows) - LIMIT} more; use --json for all)")
     return data, out
 
 
@@ -252,18 +252,18 @@ def last_point(work: Work) -> Point | None:
 def state_of(work: Work, who: str, at: Point | None):
     key = work.people.get(who)
     if key is None:
-        raise ValueError(f"人物 {who} が characters.yaml に無い")
+        raise ValueError(f"character {who} is not in characters.yaml")
     s = replay(work, at) if at else replay(work)
     d = person_state(work, s, key)
-    d["at"] = work.label(at) + " の頭" if at else "最後まで"
-    return d, [f"# {key}（{d['at']}）", *person_lines(d)]
+    d["at"] = "start of " + work.label(at) if at else "latest"
+    return d, [f"# {key} ({d['at']})", *person_lines(d)]
 
 
 def knows(work: Work, secret: str, at: Point | None):
     sec = next((x for x in work.rows("secrets") if x.get("id") == secret), None) or \
         next((x for x in work.rows("secrets") if secret in (x.get("fact") or "")), None)
     if sec is None:
-        raise ValueError(f"秘密 {secret} が secrets.yaml に無い")
+        raise ValueError(f"secret {secret} is not in secrets.yaml")
     s = replay(work, at) if at else replay(work)
     who = [{"name": p, "at": work.label(k["at"]) if k["at"] else "はじめから", "src": k["src"]}
            for p, ks in s.knows.items() for k in ks if k["what"] == sec["id"]]
@@ -271,22 +271,22 @@ def knows(work: Work, secret: str, at: Point | None):
     not_yet = [c.get("short") or c["name"] for c in work.characters if (c.get("short") or c["name"]) not in knowers]
     data = {"id": sec["id"], "fact": sec.get("fact"), "reader": sec.get("reader"), "reader_note": sec.get("reader_note"), "knows": who, "not_yet": not_yet,
             "at": work.label(at) if at else None}
-    out = [f"# {sec['id']}: {sec.get('fact')}（読者: {reader_text(sec) or '不明'}）"]
-    out += [f"- 知っている: {w['name']}（{w['at']}）" for w in who]
-    out.append("- まだ知らない: " + ("、".join(not_yet) or "なし"))
+    out = [f"# {sec['id']}: {sec.get('fact')} (reader: {reader_text(sec) or 'unknown'})"]
+    out += [f"- knows: {w['name']}（{w['at']}）" for w in who]
+    out.append("- not yet: " + ("、".join(not_yet) or "none"))
     return data, out
 
 
 def where(work: Work, item: str, at: Point | None):
     name = work.item_names.get(item)
     if name is None:
-        raise ValueError(f"持ち物 {item} が items.yaml に無い")
+        raise ValueError(f"item {item} is not in items.yaml")
     s = replay(work, at) if at else replay(work)
     first = next((i.get("holder") for i in work.items if i["name"] == name), None)
     hist = [{"at": work.label(m["at"]), "to": m["to"]} for m in s.moves.get(name, [])]
     data = {"item": name, "holder": s.holder.get(name), "first": first, "moves": hist}
-    out = [f"# {name}: いま {data['holder'] or '不明'}" + (f"（{work.label(at)} の頭）" if at else ""),
-           f"- はじめ: {first or '不明'}", *[f"- {m['at']} → {m['to']}" for m in hist]]
+    out = [f"# {name}: now {data['holder'] or 'unknown'}" + (f" (start of {work.label(at)})" if at else ""),
+           f"- initially: {first or 'unknown'}", *[f"- {m['at']} → {m['to']}" for m in hist]]
     return data, out
 
 
@@ -302,7 +302,7 @@ def timeline(work: Work):
         evs = _scene_events(work, sc["_pt"])
         data.append({"at": work.label(sc["_pt"]), "when": when(sc), "place": sc.get("place"), "cast": sc.get("cast"),
                      "summary": sc.get("summary"), "events": [ev_data(work, e) for e in evs]})
-        out.append(f"{work.label(sc['_pt'])} {when(sc) or '日時なし'} {sc.get('place') or ''} [{'・'.join(sc.get('cast') or [])}] {sc.get('summary') or ''}")
+        out.append(f"{work.label(sc['_pt'])} {when(sc) or 'no date'} {sc.get('place') or ''} [{'・'.join(sc.get('cast') or [])}] {sc.get('summary') or ''}")
         out += [f"    {fmt_event(work, e)}" for e in evs]
     return data, out
 
@@ -322,7 +322,7 @@ def recap(work: Work, until: Point):
             sc = scene_row(work, pt) or {}
             evs = _scene_events(work, pt)
             data.append({"at": work.label(pt), "when": when(sc), "summary": sc.get("summary"), "events": [ev_data(work, e) for e in evs]})
-            out.append(f"- {work.label(pt)} {when(sc)} {sc.get('summary') or '（場面の表に無い）'}")
+            out.append(f"- {work.label(pt)} {when(sc)} {sc.get('summary') or '(not in the scene table)'}")
             out += [f"    {fmt_event(work, e)}" for e in evs]
     return data, out
 
@@ -342,7 +342,7 @@ def threads(work: Work, at: Point | None):
     """伏線ごとの、置いた・匂わせた・回収した所と予定。回収の予定を過ぎて回収していないものに印を付ける。"""
     now = at or last_point(work)
     if now is None:
-        return {"at": None, "threads": []}, ["# 伏線", "（場面の表が無い）"]
+        return {"at": None, "threads": []}, ["# Threads", "(no scene table)"]
     s = replay(work, at) if at else replay(work, now, inclusive=True)
     data, out = [], []
     for t in work.rows("threads"):
@@ -359,12 +359,12 @@ def threads(work: Work, at: Point | None):
         base = "paid_off" if any(d["kind"] == "payoff" for d in done) else ("planted" if done else "not_planted")
         status = "overdue" if late else base
         data.append({"id": t.get("id"), "desc": t.get("desc"), "status": status, "done": done, "plan": plan})
-        out += [f"## {t.get('id')}（{ja(base)}{'・' + ja('overdue') if late else ''}）", f"- {t.get('desc') or ''}"]
-        out += [f"- {ja(d['kind'])} {d['at']}" + (f" {d['where']}" if d.get("where") else f"（{d['lost']}）" if d.get("lost") else "") for d in done]
-        out += [f"- 予定: {ja(p['do'])} {p['at']}" + (f"（{p['note']}）" if p.get("note") else "") for p in plan]
+        out += [f"## {t.get('id')} ({base.replace('_', ' ')}{', overdue' if late else ''})", f"- {t.get('desc') or ''}"]
+        out += [f"- {d['kind']} {d['at']}" + (f" {d['where']}" if d.get("where") else f"（{d['lost']}）" if d.get("lost") else "") for d in done]
+        out += [f"- planned: {p['do']} {p['at']}" + (f"（{p['note']}）" if p.get("note") else "") for p in plan]
         out.append("")
-    head = f"# 伏線（{work.label(now)} の時点）"
-    return {"at": work.label(now), "threads": data}, [head, "", *out] if out else [head, "（伏線が無い）"]
+    head = f"# Threads (as of {work.label(now)})"
+    return {"at": work.label(now), "threads": data}, [head, "", *out] if out else [head, "(no threads)"]
 
 
 # --json にだけ足す台帳の項目（出す鍵 -> 台帳の項目。無ければ省く）。用語の note は一言の note（読み）とぶつかるので desc で出す
@@ -378,7 +378,7 @@ LIST_KINDS = {  # 種類 -> (名前の項目, 一言の項目)
 def listing(work: Work, kind: str):
     """台帳の名前を一行ずつ並べる（中身は state・knows・where・search・render の生成物で引く）。"""
     if kind not in LIST_KINDS:
-        raise ValueError(f"種類は {', '.join(LIST_KINDS)} のどれか: {kind}")
+        raise ValueError(f"kind must be one of {', '.join(LIST_KINDS)}: {kind}")
     key, note = LIST_KINDS[kind]
     rows = {"characters": work.characters, "places": work.places_list, "items": work.items}.get(kind) or work.rows(kind)
     data = [{"name": r.get(key), "note": r.get(note), **{k: r[f] for k, f in LIST_MORE.get(kind, {}).items() if r.get(f) is not None}}

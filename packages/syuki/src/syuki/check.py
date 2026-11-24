@@ -18,14 +18,6 @@ SUFFIXES = ("監", "院", "局", "官", "庁", "塔", "寮", "会所", "省", "�
 RASHII_LIMIT = 3
 
 
-LEVEL_JA = {"violation": "違反", "confirm": "確認"}
-KIND_JA = {  # 照合の種類の、人が読む出力での言い方
-    "yaml_shape": "YAML の形", "lost_anchor": "引用の迷子", "anchor_ambiguous": "引用", "scene_count": "場面の数",
-    "order": "記録の時点の並び", "unknown_name": "登録していない名前", "event_kind": "出来事の種類", "event_shape": "出来事の形",
-    "stage": "好意の段階", "document_cite": "文書の引用", "item": "持ち物", "thread": "伏線", "keep": "残す文",
-    "date": "日時", "travel": "移動", "term": "用語", "rashii": "らしい", "unregistered_word": "登録していない語",
-    "unknown_knowledge": "知らないはずの知識", "plugin": "checks.py",
-}
 
 
 class Report:
@@ -41,9 +33,10 @@ class Report:
         return sum(1 for i in self.items if i["level"] == "violation")
 
     def text(self) -> list[str]:
-        out = [f"{LEVEL_JA[i['level']]}［{KIND_JA.get(i['kind'], i['kind'])}］{i['where'] + ' ' if i['where'] else ''}{i['msg']}" for i in self.items]
-        out += [f"知らせ: {n}" for n in self.notices]
-        out.append(f"違反 {self.violations} 件、確認 {len(self.items) - self.violations} 件")
+        out = [f"{i['level']} [{i['kind'].replace('_', ' ')}] {i['where'] + ' ' if i['where'] else ''}{i['msg']}" for i in self.items]
+        out += [f"note: {n}" for n in self.notices]
+        v, c = self.violations, len(self.items) - self.violations
+        out.append(f"{v} violation{'' if v == 1 else 's'}, {c} to confirm")
         return out
 
 
@@ -69,7 +62,7 @@ def check_anchors(work: Work, r: Report):
             r.add("lost_anchor", f"{anchor}: {e}", file)
             continue
         if hit.count > 1:
-            r.add("anchor_ambiguous", f"{anchor} が本文に {hit.count} か所。最初の {hit.where} を使う", file, confirm=True)
+            r.add("anchor_ambiguous", f"{anchor} が本文に {hit.count} か所あります。最初の {hit.where} を使います", file, confirm=True)
 
 
 def check_scenes(work: Work, r: Report):
@@ -77,13 +70,13 @@ def check_scenes(work: Work, r: Report):
         rows = [s["_pt"].scene for s in work.scenes if (s["_pt"].vi, s["_pt"].ci) == (ch.vi, ch.ci)]
         file = work.ledger_file("scenes", ch.vol)
         if not rows:
-            r.add("scene_count", f"{ch.id} が場面の表に無い（本文は {ch.scenes} 場面）", file, confirm=True)
+            r.add("scene_count", f"{ch.id} が場面の表にありません（本文は {ch.scenes} 場面です）", file, confirm=True)
             continue
         for n, c in Counter(rows).items():
             if c > 1:
-                r.add("scene_count", f"{ch.id}:{n} が {c} 行ある", file)
+                r.add("scene_count", f"{ch.id}:{n} が {c} 行あります", file)
         if len(set(rows)) != ch.scenes:
-            r.add("scene_count", f"{ch.id} は場面の表に {len(set(rows))} 場面、本文（{ch.rel}）は {ch.scenes} 場面", file)
+            r.add("scene_count", f"{ch.id} は場面の表に {len(set(rows))} 場面、本文（{ch.rel}）に {ch.scenes} 場面あります", file)
 
 
 def check_order(work: Work, r: Report):
@@ -91,7 +84,7 @@ def check_order(work: Work, r: Report):
         prev = None
         for row in getattr(work, name):
             if prev and prev["_vol"] == row["_vol"] and row["_pt"] < prev["_pt"]:
-                r.add("order", f"{work.label(row['_pt'])} が {work.label(prev['_pt'])} のあとにある。時点の順に並べる",
+                r.add("order", f"{work.label(row['_pt'])} が {work.label(prev['_pt'])} のあとにあります。時点の順に並べてください",
                       work.ledger_file(name, row["_vol"]))
             prev = row
 
@@ -103,7 +96,7 @@ def check_names(work: Work, r: Report):
 
     def need(name, table, what, where):
         if name is not None and name not in table:
-            r.add("unknown_name", f"{what}「{name}」が台帳に無い", where)
+            r.add("unknown_name", f"{what}「{name}」が台帳にありません", where)
 
     for sc in work.scenes:
         w = where_ev(work, sc, "scenes")
@@ -113,11 +106,11 @@ def check_names(work: Work, r: Report):
     for e in work.events:
         w, kind = where_ev(work, e, "events"), e.get("kind")
         if kind not in KINDS:
-            r.add("event_kind", f"種類「{kind}」は {' / '.join(KINDS)} のどれか", w)
+            r.add("event_kind", f"種類「{kind}」は {' / '.join(KINDS)} のどれかにしてください", w)
             continue
         for k in KINDS[kind]:
             if not e.get(k):
-                r.add("event_shape", f"{kind} には {k} が要る", w)
+                r.add("event_shape", f"{kind} には {k} が要ります", w)
         for n in names(e.get("who")):
             need(n, people, "人物", w)
         if kind == "feel":
@@ -126,19 +119,19 @@ def check_names(work: Work, r: Report):
             need(e.get("what"), items, "持ち物", w)
             for k in ("to", "from"):
                 if e.get(k) is not None and e[k] not in people and e[k] not in places:
-                    r.add("unknown_name", f"{k}「{e[k]}」が人物にも場所にも無い", w)
+                    r.add("unknown_name", f"{k}「{e[k]}」が人物にも場所にもありません", w)
         elif kind in THREAD_KINDS:
             need(e.get("what"), threads, "伏線", w)
         elif kind == "stage":
             for n in names(e.get("who")):
                 key = next((h for h in stages if people.get(h) == people.get(n)), None)
                 if key is None:
-                    r.add("stage", f"{n} の段階が syuki.yml の stages に無い", w)
+                    r.add("stage", f"{n} の段階が syuki.yml の stages にありません", w)
                 elif e.get("what") not in stages[key]:
-                    r.add("stage", f"段階「{e.get('what')}」は {'→'.join(stages[key])} のどれか", w)
+                    r.add("stage", f"段階「{e.get('what')}」は {'→'.join(stages[key])} のどれかにしてください", w)
     for i in work.items:
         if i.get("holder") and i["holder"] not in people and i["holder"] not in places:
-            r.add("unknown_name", f"{i['name']} の holder「{i['holder']}」が人物にも場所にも無い", work.ledger_file("items"))
+            r.add("unknown_name", f"{i['name']} の holder「{i['holder']}」が人物にも場所にもありません", work.ledger_file("items"))
     for s in work.rows("secrets"):
         for n in s.get("known") or []:
             need(n, people, "人物", work.ledger_file("secrets"))
@@ -169,7 +162,7 @@ def check_documents(work: Work, r: Report):
             # 一行に別の文書の引用が並ぶことがあるので、引用の字を含む『』だけを見る
             for frag in [f for f in frags if quote in plain(f) or plain(f) in quote] or frags:
                 if plain(frag) and plain(frag) not in body:
-                    r.add("document_cite", f"「{frag}」が {d.get('id')} の正本と合わない", hit.where)
+                    r.add("document_cite", f"「{frag}」が {d.get('id')} の正本と合いません", hit.where)
 
 
 def check_items(work: Work, r: Report):
@@ -184,10 +177,10 @@ def check_items(work: Work, r: Report):
         if e.get("from") is not None:
             frm = work.people.get(e["from"], e["from"])
             if frm != holder.get(item):
-                r.add("item", f"{item} を {frm} から移したが、その時は {holder.get(item) or '持ち主不明'} が持っている", w)
+                r.add("item", f"{item} を {frm} から移しましたが、その時は {holder.get(item) or '持ち主不明の人'} が持っています", w)
         key = (item, e["_pt"])
         if key in seen and seen[key] != to:
-            r.add("item", f"{item} が同じ場面で {seen[key]} と {to} の二か所にある", w)
+            r.add("item", f"{item} が同じ場面で {seen[key]} と {to} の二か所にあります", w)
         seen[key] = to
         holder[item] = to
 
@@ -206,7 +199,7 @@ def check_threads(work: Work, r: Report):
                 continue
             done = any(x["kind"] == "payoff" for x in s.threads.get(t.get("id"), []))
             if pt and last and pt <= last and not done:
-                r.add("thread", f"{t.get('id')} は {work.label(pt)} で回収の予定だが、回収の記録が無い", work.ledger_file("threads"))
+                r.add("thread", f"{t.get('id')} は {work.label(pt)} で回収の予定ですが、回収の記録がありません", work.ledger_file("threads"))
 
 
 def style_pack(base: Path, root: Path) -> str:
@@ -246,7 +239,7 @@ def check_keep(work: Work, r: Report):
     if not keep.is_file():
         return
     if scripts is None:
-        r.notices.append("文体パックの scripts が見つからないので keep.md の照合を飛ばした")
+        r.notices.append("style pack scripts not found, so the keep.md check was skipped")
         return
     sys.path.insert(0, str(scripts))
     keep_bytecode, sys.dont_write_bytecode = sys.dont_write_bytecode, True  # スキルのフォルダに __pycache__ を作らない
@@ -258,7 +251,7 @@ def check_keep(work: Work, r: Report):
     entries = keep_check.load(str(keep))
     for ch in work.chapters:
         for e in keep_check.check(entries, str(ch.path), "\n".join(ch.lines)):
-            r.add("keep", f"「{e['text']}」が {ch.rel} に無い（{e['reason']}）", f"style/keep.md:{e['line']}")
+            r.add("keep", f"「{e['text']}」が {ch.rel} にありません（{e['reason']}）", f"style/keep.md:{e['line']}")
 
 
 def check_dates(work: Work, r: Report):
@@ -272,18 +265,18 @@ def check_dates(work: Work, r: Report):
             continue
         w = where_ev(work, b, "scenes")
         if b["day"] < a["day"]:
-            r.add("date", f"{b['day']}日目が前の場面（{work.label(a['_pt'])}、{a['day']}日目）より前", w)
+            r.add("date", f"{b['day']}日目が前の場面（{work.label(a['_pt'])}、{a['day']}日目）より前になっています", w)
             continue
         ta, tb = minutes(a.get("time")), minutes(b.get("time"))
         if b["day"] != a["day"] or ta is None or tb is None:
             continue
         if tb < ta:
-            r.add("date", f"{b.get('time')} が前の場面（{work.label(a['_pt'])}、{a.get('time')}）より前", w)
+            r.add("date", f"{b.get('time')} が前の場面（{work.label(a['_pt'])}、{a.get('time')}）より前になっています", w)
             continue
         pa, pb = work.place_names.get(a.get("place")), work.place_names.get(b.get("place"))
         rt = routes.get(frozenset((pa, pb)))
         if pa != pb and rt and tb - ta < rt["minutes"]:
-            r.add("travel", f"{pa}→{pb} は {rt.get('time') or str(rt['minutes']) + '分'} かかるが、前の場面から {tb - ta} 分", w)
+            r.add("travel", f"{pa}→{pb} は {rt.get('time') or str(rt['minutes']) + '分'} かかりますが、前の場面から {tb - ta} 分です", w)
 
 
 def check_terms(work: Work, r: Report):
@@ -306,7 +299,7 @@ def check_terms(work: Work, r: Report):
                     new_in[(hit.ch.vol, hit.ch.id)] += 1
         first = first_use(work, term)
         if limit and first and (first[0].vi, first[0].ci, first[1]) < limit:
-            r.add("term", f"「{term}」を説明（{t['explained']}）より前に使った", f"{first[0].rel}:{first[1]}")
+            r.add("term", f"「{term}」を説明（{t['explained']}）より前に使っています", f"{first[0].rel}:{first[1]}")
         if t.get("hidden_until"):
             try:
                 until = work.later_point(t["hidden_until"], one)
@@ -315,15 +308,15 @@ def check_terms(work: Work, r: Report):
                 continue
             for ch, line in uses(work, term):
                 if until is None or Point(ch.vi, ch.ci, ch.scene_of(line)) < until:
-                    r.add("term", f"「{term}」は {t['hidden_until']} まで出さない", f"{ch.rel}:{line}")
+                    r.add("term", f"「{term}」は {t['hidden_until']} まで出さないでください", f"{ch.rel}:{line}")
                     break
     for (vol, cid), n in new_in.items():
         if n > 1:
-            r.add("term", f"{vol}/{cid} で新しい用語が {n} 個（一章に一つまで。古い語は basic: true）", file)
+            r.add("term", f"{vol}/{cid} で新しい用語が {n} 個出ています（一章に一つまでです。前から使っている語は basic: true にしてください）", file)
     for ch in work.chapters:
         n = sum(pl.count("らしい") for _, _, pl in ch.body_lines())
         if n > RASHII_LIMIT:
-            r.add("rashii", f"「らしい」が {n} 回（一章 {RASHII_LIMIT} 回まで）", ch.rel)
+            r.add("rashii", f"「らしい」が {n} 回あります（一章 {RASHII_LIMIT} 回までです）", ch.rel)
 
 
 def uses(work: Work, term: str):
@@ -342,7 +335,7 @@ def check_unregistered(work: Work, r: Report):
     try:
         from sudachipy import dictionary, tokenizer
     except ImportError:
-        r.notices.append("sudachipy が無いので未登録語の照合を飛ばした（uv run --extra ja で入る）")
+        r.notices.append("sudachipy is not installed, so the unregistered-word check was skipped (install it with uv run --extra ja)")
         return
     d = dictionary.Dictionary()
     tok = d.tokenizer() if hasattr(d, "tokenizer") else d.create()
@@ -354,7 +347,7 @@ def check_unregistered(work: Work, r: Report):
             for word in compounds(tok.tokenize(pl, mode)):
                 if word.endswith(SUFFIXES) and len(word) >= 2 and word not in known and word not in seen:
                     seen.add(word)
-                    r.add("unregistered_word", f"「{word}」が台帳と設定集に無い", f"{ch.rel}:{i}", confirm=True)
+                    r.add("unregistered_word", f"「{word}」が台帳にも設定集にもありません", f"{ch.rel}:{i}", confirm=True)
 
 
 def compounds(tokens) -> list[str]:
@@ -402,7 +395,7 @@ def check_knowledge(work: Work, r: Report):
                 cache[pt] = replay(work, pt, inclusive=True)
             for s, m in hits:
                 if not cache[pt].knows_secret(speaker, s["id"]):
-                    r.add("unknown_knowledge", f"{speaker} は {work.label(pt)} の時点で「{s['id']}」を知らないのに「{m}」と出た",
+                    r.add("unknown_knowledge", f"{speaker} は {work.label(pt)} の時点で「{s['id']}」を知らないのに、「{m}」が出ています",
                           f"{ch.rel}:{i}", confirm=True)
 
 
@@ -458,7 +451,7 @@ def impact(work: Work, rng: str):
         diff = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8",
                               env={**os.environ, "GIT_CONFIG_GLOBAL": "/dev/null"})
     if diff.returncode != 0:
-        raise ValueError(f"git diff が通らない: {diff.stderr.strip()}")
+        raise ValueError(f"git diff failed: {diff.stderr.strip()}")
     by_rel = {c.rel: c for c in work.chapters}
     changed: dict[Point, list[int]] = {}
     ch = None
@@ -481,8 +474,8 @@ def impact(work: Work, rng: str):
         "changed": [{"at": work.label(p), "lines": lines} for p, lines in sorted(changed.items())],
         "lost": lost, "events": [ev_data(work, e) for e in here], "dependents": [ev_data(work, e) for e in later],
     }
-    out = ["## 変えた場面"] + [f"- {work.label(p)}（{work.ch_of(p).rel}:{lines[0]}-{lines[-1]}）" for p, lines in sorted(changed.items())]
-    out += ["## 迷子になった引用"] + [f"- {i['where']} {i['msg']}" for i in lost]
-    out += ["## 変えた場面の出来事"] + [f"- {work.label(e['_pt'])} {fmt_event(work, e)}" for e in here]
-    out += ["## 頼っている後ろの出来事"] + [f"- {work.label(e['_pt'])} {fmt_event(work, e)}" for e in later]
+    out = ["## Changed scenes"] + [f"- {work.label(p)}（{work.ch_of(p).rel}:{lines[0]}-{lines[-1]}）" for p, lines in sorted(changed.items())]
+    out += ["## Lost quotes"] + [f"- {i['where']} {i['msg']}" for i in lost]
+    out += ["## Events in the changed scenes"] + [f"- {work.label(e['_pt'])} {fmt_event(work, e)}" for e in here]
+    out += ["## Later events that depend on them"] + [f"- {work.label(e['_pt'])} {fmt_event(work, e)}" for e in later]
     return data, out, bool(lost)

@@ -12,7 +12,7 @@ def test_init_creates_skeleton_and_checks_clean(tmp_path, capsys):
     for rel in ("syuki.yml", "ledger/places.yaml", "ledger/vol1/events.yaml", "style/profile.toml", "style/keep.md", "plot.md"):
         assert (root / rel).is_file(), rel
     assert main(["init", str(root)]) == 0
-    assert "既存:" in capsys.readouterr().out
+    assert "Exists:" in capsys.readouterr().out
     assert main(["check", "--work", str(root)]) == 0
     assert "緩急" not in (root / "style/profile.toml").read_text(encoding="utf-8")  # 既定は general の雛形
 

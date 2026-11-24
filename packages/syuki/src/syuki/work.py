@@ -99,7 +99,7 @@ def find_conf(start: Path) -> Path:
     for d in [p, *p.parents]:
         if (d / CONF_NAME).is_file():
             return d / CONF_NAME
-    raise SystemExit(f"{CONF_NAME} が見つからない（{start} から上へたどった）")
+    raise SystemExit(f"syuki: {CONF_NAME} not found (searched up from {start})")
 
 
 class Chapter:
@@ -198,7 +198,7 @@ class Work:
         try:
             data = yaml.load(path.read_text(encoding="utf-8"), Loader=Loader)
         except yaml.YAMLError as e:
-            self.problems.append((rel, f"YAML が読めない: {e}"))
+            self.problems.append((rel, f"YAML を読めません: {e}"))
             return empty
         if data is None:
             return empty
@@ -242,25 +242,25 @@ class Work:
         for ch in self.chapters:
             if ch.vol == vol and ch.matches(token):
                 return ch
-        raise NotWritten(f"章 {token} が {vol} の本文に無い")
+        raise NotWritten(f"chapter {token} is not in the manuscript of {vol}")
 
     def _vol(self, vol: str | None) -> str:
         if vol:
             if vol not in self.volumes:
-                raise NotWritten(f"巻 {vol} が無い")
+                raise NotWritten(f"no volume {vol}")
             return vol
         if len(self.volumes) == 1:
             return self.volumes[0]
-        raise ValueError("巻が二つ以上あるので「vol1/04:3」の形で巻を付ける")
+        raise ValueError("there are several volumes; add the volume, as in vol1/04:3")
 
     def point(self, text, vol: str | None = None) -> Point:
         m = POINT.match(str(text))
         if not m:
-            raise ValueError(f"時点「{text}」は「章:場面」の形で書く")
+            raise ValueError(f"point {text!r} must be chapter:scene")
         ch = self.chapter(m["ch"], m["vol"] or vol)
         scene = int(m["scene"]) if m["scene"] else 0
         if scene > ch.scenes:
-            raise ValueError(f"{ch.id} の場面は {ch.scenes} まで（{text}）")
+            raise ValueError(f"{ch.id} has {ch.scenes} scenes ({text})")
         return Point(ch.vi, ch.ci, scene)
 
     def later_point(self, text, vol: str | None = None) -> Point | None:
@@ -286,13 +286,13 @@ class Work:
         """「章「引用」」を本文の行に引き直す。見つからなければ ValueError（迷子）。"""
         m = ANCHOR.match(anchor.strip())
         if not m:
-            raise ValueError(f"引用「{anchor}」は「章「本文の字」」の形で書く")
+            raise ValueError(f"引用「{anchor}」は「章「本文の字」」の形で書いてください")
         ch = self.chapter(m["ch"], m["vol"] or vol)
         quote = m["quote"]
         pq = plain(quote)
         found = [i + 1 for i, (raw, pl) in enumerate(zip(ch.lines, ch.plain)) if quote in raw or (pq and pq in pl)]
         if not found:
-            raise ValueError(f"迷子: {ch.rel} に「{quote}」が無い")
+            raise ValueError(f"迷子: {ch.rel} に「{quote}」がありません")
         return Hit(ch, found[0], len(found))
 
     def anchors(self):
@@ -333,20 +333,20 @@ def validate(node, spec, where: str) -> list[str]:
     at = where or "先頭"
     if isinstance(spec, list):
         if not isinstance(node, list):
-            return [f"{at}: 並び（- の行）で書く"]
+            return [f"{at}: 並び（- の行）で書いてください"]
         return [e for i, row in enumerate(node) for e in validate(row, spec[0], f"{where}[{i}]")]
     if isinstance(spec, dict):
         if not isinstance(node, dict):
-            return [f"{at}: 項目（キー: 値）で書く"]
-        errs = [f"{at}: 知らない項目 {k}" for k in node if k not in spec]
-        errs += [f"{at}: {k} が無い" for k, t in spec.items()
+            return [f"{at}: 項目（キー: 値）で書いてください"]
+        errs = [f"{at}: 知らない項目 {k} があります" for k in node if k not in spec]
+        errs += [f"{at}: {k} がありません" for k, t in spec.items()
                  if (t.need if isinstance(t, OneOf) else isinstance(t, str) and t.endswith("!")) and k not in node]
         for k, v in node.items():
             if k in spec and v is not None:
                 errs += validate(v, spec[k], f"{where}.{k}" if where else k)
         return errs
     if isinstance(spec, OneOf):
-        return [] if node in spec.values else [f"{at}: {' / '.join(spec.values)} のどれか（{node!r}）"]
+        return [] if node in spec.values else [f"{at}: {' / '.join(spec.values)} のどれかにしてください（{node!r}）"]
     t = spec.rstrip("!")
     ok = {
         "str": isinstance(node, str), "anchor": isinstance(node, str), "point": isinstance(node, str),
@@ -356,7 +356,7 @@ def validate(node, spec, where: str) -> list[str]:
         "anchors": isinstance(node, list) and all(isinstance(x, str) for x in node),
         "names": isinstance(node, str) or (isinstance(node, list) and all(isinstance(x, str) for x in node)),
     }[t]
-    return [] if ok else [f"{at}: {t} で書く（{node!r}）"]
+    return [] if ok else [f"{at}: {t} で書いてください（{node!r}）"]
 
 
 def names(value) -> list[str]:

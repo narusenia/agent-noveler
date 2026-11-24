@@ -4,7 +4,7 @@ from __future__ import annotations
 from .state import replay
 from .work import Work, ja, reader_text
 
-NOTICE = "> 生成物。手で直さない（正本は `ledger/` の YAML。`syuki render` で作る）。"
+NOTICE = "> 生成物です。手で直さないでください（正本は `ledger/` の YAML で、`syuki render` で作ります）。"
 DEFAULTS = {"characters": "characters.md", "details": "details.md", "map": "plot/map.md",
             "documents": "plot/documents.md", "state": "plot/{vol}-state.md"}
 
@@ -129,7 +129,7 @@ def state_md(work: Work, vol: str) -> list[str]:
             place = s.place.get(who, {}).get("place")
             rows.append([who, "、".join(new), "、".join(feels), "、".join(s.items_of(who)), place])
         out += ["", f"### {ch.id}（章末）", ""]
-        out += table(["人物", "この章で知ったこと", "気持ち", "持ち物", "居場所"], rows) if rows else ["（場面の表に人物が無い）"]
+        out += table(["人物", "この章で知ったこと", "気持ち", "持ち物", "居場所"], rows) if rows else ["（場面の表に人物がいません）"]
     last = work.end_of(chs[-1]) if chs else None
     s = replay(work, last, inclusive=True) if last else replay(work)
     out += ["", "## 2. 秘密と知っている人", ""]
@@ -183,10 +183,10 @@ def stages(work: Work, absent_after: int = 2):
             cols.append({"chapter": ch.id, "stage": st["what"] if st else steps[0], "seen": seen})
         gap = len(chs) - 1 - chs.index(last_seen) if last_seen else len(chs)
         data.append({"heroine": key, "chapters": cols, "last_seen": last_seen.id if last_seen else None, "absent": gap >= absent_after})
-        rows.append([key, *[c["stage"] + ("" if c["seen"] else "（不在）") for c in cols], last_seen.id if last_seen else "なし"])
-    out = table(["人物", *[c.id for c in chs], "最後に出た章"], rows)
+        rows.append([key, *[c["stage"] + ("" if c["seen"] else " (absent)") for c in cols], last_seen.id if last_seen else "none"])
+    out = table(["character", *[c.id for c in chs], "last seen"], rows)
     away = [d["heroine"] for d in data if d["absent"]]
     if away:
-        out.append(f"しばらく出ていない（{absent_after} 章以上）: " + "、".join(away))
+        out.append(f"absent for {absent_after}+ chapters: " + ", ".join(away))
     return data, out
 
