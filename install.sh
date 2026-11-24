@@ -22,34 +22,34 @@ pick() {  # pick <問い> <既定> <選択肢...>
   shift 2
   tty || { echo "$d"; return; }
   if command -v gum >/dev/null; then gum choose --header "$q" --selected "$d" "$@" </dev/tty; return; fi
-  read -r -p "${q}（$*）[$d]: " r </dev/tty
+  read -r -p "$q ($*) [$d]: " r </dev/tty
   echo "${r:-$d}"
 }
 
 if [ -z "$tools" ]; then
   d=plain; command -v mise >/dev/null && d=mise
-  tools=$(pick "道具（node・pnpm・uv・gum）を mise で管理しますか" $d mise plain)
+  tools=$(pick "Manage tools (node, pnpm, uv, gum) with mise?" $d mise plain)
 fi
 if [ "$tools" = mise ] && ! command -v mise >/dev/null; then
-  echo "mise が見つかりません。入れ方: curl https://mise.run | sh （https://mise.jdx.dev）"
-  [ "$(pick "どうしますか" stop plain stop)" = plain ] || exit 1
+  echo "mise not found. Install: curl https://mise.run | sh (https://mise.jdx.dev)"
+  [ "$(pick "Continue without mise (plain) or stop?" stop plain stop)" = plain ] || exit 1
   tools=plain
 fi
-case $tools in mise | plain) ;; *) echo "--tools は mise か plain: $tools" >&2; exit 2 ;; esac
+case $tools in mise | plain) ;; *) echo "--tools must be mise or plain: $tools" >&2; exit 2 ;; esac
 
 missing=0
 need() {  # need <コマンド> <入れ方>
-  command -v "$1" >/dev/null || { echo "見つかりません: $1 — 入れ方: $2"; missing=1; }
+  command -v "$1" >/dev/null || { echo "Not found: $1 — install: $2"; missing=1; }
 }
 need git "https://git-scm.com/downloads"
 if [ "$tools" = plain ]; then
-  need uv "curl -LsSf https://astral.sh/uv/install.sh | sh （https://docs.astral.sh/uv/）"
-  need node "Node.js 22 以上を https://nodejs.org/ から"
+  need uv "curl -LsSf https://astral.sh/uv/install.sh | sh (https://docs.astral.sh/uv/)"
+  need node "Node.js 22 or later from https://nodejs.org/"
   if command -v node >/dev/null && [ "$(node -p 'process.versions.node.split(".")[0]')" -lt 22 ]; then
-    echo "Node.js が古い: $(node -v)（22 以上が要る）"; missing=1
+    echo "Node.js too old: $(node -v) (22 or later required)"; missing=1
   fi
 fi
-[ $missing = 0 ] || { echo "上の道具を入れてから、もう一度実行してください。"; exit 1; }
+[ $missing = 0 ] || { echo "Install the tools above, then run this again."; exit 1; }
 
 if [ -d "$home/.git" ]; then
   git -C "$home" pull --ff-only
@@ -59,4 +59,4 @@ else
 fi
 printf 'tools=%s\n' "$tools" >"$home/config"
 bash "$home/bin/noveler" _setup
-echo "入りました（道具の管理: ${tools}）。noveler help でコマンドの一覧、noveler new で原稿のリポジトリを作れます。"
+echo "Installed agent-noveler (tool manager: $tools). Run noveler help for commands, noveler new to create a manuscript repository."
