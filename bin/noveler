@@ -29,9 +29,10 @@ if [ "$TOOLS" = mise ] && [ -z "${NOVELER_IN_MISE:-}" ] && command -v mise >/dev
 fi
 
 YES=${NOVELER_YES:-}
+HELP=
 args=()
 for a in "$@"; do
-  case $a in -y | --yes) YES=1 ;; *) args+=("$a") ;; esac
+  case $a in -y | --yes) YES=1 ;; -h | --help) HELP=1 ;; *) args+=("$a") ;; esac
 done
 set -- ${args[@]+"${args[@]}"}
 
@@ -271,6 +272,7 @@ noveler — AI と小説を書くための道具（agent-noveler）
 EOF
 }
 
+[ -n "$HELP" ] && set -- help
 case ${1:-help} in
   new | create-project) shift; cmd_new "$@" ;;
   add) shift; cmd_add "$@" ;;
