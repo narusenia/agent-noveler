@@ -1,6 +1,6 @@
 # 作品の文体の設定。check_style.py が本文のフォルダから上へたどって style/profile.toml を探す。
 rhythm = "緩急"            # 緩急 / 軽快 / 描写 / 饒舌
-balance = "笑い 6 / シリアス 4"
+balance = "笑い 4 / シリアス 6"
 characters = "characters.md"  # 口癖を読む人物ファイル（本文フォルダからの相対ではなく、style/ の親からの相対）
 catchphrase_limit = 2      # 口癖は一章にこの回数まで
 
