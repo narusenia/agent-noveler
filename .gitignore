@@ -1,0 +1,13 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+.env
+
+# Python
+__pycache__/
+.venv/
+.pytest_cache/
+
+# shosai e2e の書き出し
+packages/shosai/e2e/out/

@@ -1,0 +1,16 @@
+{
+  "name": "shosai-workspace",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "review": "pnpm --filter @narusenia/shosai dev",
+    "syuki": "uv run --project packages/syuki syuki"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.5.1",
+      "onFail": "download"
+    }
+  }
+}
