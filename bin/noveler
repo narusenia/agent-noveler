@@ -238,7 +238,7 @@ cmd_doctor() {
   local t v repo w fail=0
   title "道具（管理: ${TOOLS}）"
   for t in git uv node pnpm gum syuki; do
-    if [ $t = gum ] && [ -n "$GUM" ]; then v="$("$GUM" --version 2>&1 | head -1)（${GUM}）"
+    if [ $t = gum ] && ! command -v gum >/dev/null && [ -x "$SRC/bin/gum" ]; then v="$("$SRC/bin/gum" --version 2>&1 | head -1)（$SRC/bin/gum）"
     elif [ $t = syuki ] && [ -n "${NOVELER_SYUKI:-}" ]; then v="NOVELER_SYUKI=$NOVELER_SYUKI"
     elif command -v $t >/dev/null; then
       case $t in syuki) v=$(command -v syuki) ;; *) v=$($t --version 2>&1 | head -1) ;; esac
