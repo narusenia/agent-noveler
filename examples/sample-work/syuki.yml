@@ -1,0 +1,15 @@
+# syuki の設定。書き方は harness/skills/syuki/references/schema.md
+title: 灯台の鍵
+manuscript: manuscript
+ext: .kym.txt
+volumes: [vol1]
+ledger: ledger
+style: style/profile.toml
+plots:
+  vol1: plot.md
+setting: []
+stages:
+  ハル: [幼なじみ, 気になる, 自覚]
+render:
+  characters: characters.md
+  details: details.md

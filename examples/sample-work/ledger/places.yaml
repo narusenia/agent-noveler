@@ -1,0 +1,20 @@
+# 書き方は harness/skills/syuki/references/schema.md
+places:
+  - name: 港町
+    where: 岬の東に広がる漁師町
+  - name: 岬の灯台
+    aliases: [灯台, 灯台の裏, 灯台の前]
+    in: 港町
+    where: 港町の西、岬の坂の上
+    src: [00「港町の西、岬の坂の上」]
+  - name: ソラの家
+    in: 港町
+  - name: 桟橋
+    in: 港町
+  - name: 港湾局
+    in: 港町
+    notes: [ソラの父が若いころ写真係をしていた]
+  - name: 集会所
+    in: 港町
+    notes: [奥の棚に、年ごとの町の帳面が並ぶ]
+routes: []

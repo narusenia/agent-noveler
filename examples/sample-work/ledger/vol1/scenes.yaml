@@ -1,0 +1,7 @@
+# 書き方は harness/skills/syuki/references/schema.md
+- {at: "00-prologue:1", time: 朝, place: 岬の灯台, cast: [ソラ], summary: 十年前の霧の日、少年が白い船を見る}
+- {at: "01:1", day: 1, time: 夕方, place: 灯台の裏, cast: [ソラ, ハル], summary: ハルが日誌を届け、潮読みで霧を当てる}
+- {at: "01:2", day: 1, time: 夜, place: ソラの家, cast: [ソラ], summary: 鍵を引き出しから出す}
+- {at: "01:3", day: 2, time: 朝, place: ソラの家, cast: [ソラ], summary: 霧が出て、岬へ向かう}
+- {at: "01:4", day: 2, time: 午前, place: 灯台の前, cast: [ソラ, 灯台守], summary: 灯台守が地下の扉のことを言う}
+- {at: "01:5", day: 2, time: 放課後, place: 灯台の前, cast: [ソラ, ハル], summary: ハルが鍵の模様を知っていた}

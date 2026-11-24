@@ -1,0 +1,5 @@
+# 書き方は harness/skills/syuki/references/schema.md
+- {at: "00:1", kind: plant, what: 白い船, src: 00「町の帳面には」}
+- {at: "01:4", kind: know, who: ソラ, what: 地下の扉, src: 01「ここの地下の扉を見てみろ」}
+- {at: "01:5", kind: plant, what: 波の模様, src: 01「同じ模様があるよ」}
+- {at: "01:5", kind: stage, who: ハル, what: 気になる, src: 01「笑わないよ」}

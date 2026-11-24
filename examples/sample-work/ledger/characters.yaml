@@ -1,0 +1,24 @@
+# 書き方は harness/skills/syuki/references/schema.md
+- name: ソラ・アオバ
+  short: ソラ
+  profile:
+    一人称: 俺。地の文も「俺」。
+    口調: ぶっきらぼう。「〜だろ」「〜よ」
+  notes:
+    - 【本文仮】十年前に桟橋で古い鍵を拾った（第1巻第一章）。
+- name: ハル・ミナト
+  short: ハル
+  aliases: [委員長]
+  profile:
+    一人称: 私
+    口調: さっぱりしている。言い切ってから少し崩す
+  samples:
+    平常: 「知ってる。だから来たの」
+    照れたとき: 「たぶん」
+  notes:
+    - 【本文仮】祖母に潮読みを習った（第1巻第一章）。
+- name: 灯台守
+  aliases: [じいさん]
+  role: 端役
+  profile:
+    口調: 「〜とる」「〜ん」
