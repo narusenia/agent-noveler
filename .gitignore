@@ -14,3 +14,5 @@ packages/shosai/e2e/out/
 
 # shosai の e2e が途中で止まったときの作品
 examples/zz-*/
+/bin/gum
+/config

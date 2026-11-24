@@ -1,0 +1,284 @@
+#!/usr/bin/env bash
+# noveler: agent-noveler の便利コマンド。`noveler help` で一覧。
+# gum（PATH → このフォルダの bin/gum の順）があれば見た目を整え、無ければ素の echo/read で同じことをする。
+# 答えは環境変数でも渡せる（--yes か NOVELER_YES=1 で聞かずに既定値を使う）:
+#   NOVELER_PACK（文体パック）、NOVELER_MODE（ai|human）、NOVELER_WORK（作品のフォルダ名）、
+#   NOVELER_TITLE（題）、NOVELER_AUTHOR（作者名）、NOVELER_SYUKI（syuki の呼び方。既定は PATH の syuki）
+set -euo pipefail
+
+# このファイルの実体の場所（~/.local/bin からのリンクをたどる）
+self=$0
+while [ -L "$self" ]; do
+  l=$(readlink "$self")
+  case $l in /*) self=$l ;; *) self=$(dirname "$self")/$l ;; esac
+done
+SRC=$(cd "$(dirname "$self")/.." && pwd)
+SAMPLE=$SRC/examples/sample-work
+GUM_VERSION=0.17.0
+REPO_URL=$(git -C "$SRC" remote get-url origin 2>/dev/null || echo https://github.com/narusenia/agent-noveler)
+SYUKI_SPEC="syuki[ja] @ git+$REPO_URL#subdirectory=packages/syuki"
+read -r -a SYUKI <<<"${NOVELER_SYUKI:-syuki}"
+
+# 道具の管理（install.sh が $SRC/config に書く）。mise なら node・pnpm・uv・gum を mise exec で揃えて動かす
+MISE_TOOLS="node@22 pnpm@11 uv@latest gum@$GUM_VERSION"
+TOOLS=${NOVELER_TOOLS:-$(sed -n 's/^tools=//p' "$SRC/config" 2>/dev/null || true)}
+TOOLS=${TOOLS:-plain}
+if [ "$TOOLS" = mise ] && [ -z "${NOVELER_IN_MISE:-}" ] && command -v mise >/dev/null; then
+  # shellcheck disable=SC2086
+  NOVELER_IN_MISE=1 exec mise exec $MISE_TOOLS -- "$self" "$@"
+fi
+
+YES=${NOVELER_YES:-}
+args=()
+for a in "$@"; do
+  case $a in -y | --yes) YES=1 ;; *) args+=("$a") ;; esac
+done
+set -- ${args[@]+"${args[@]}"}
+
+GUM=
+if [ -z "${NOVELER_NO_GUM:-}" ] && [ -t 1 ]; then
+  if command -v gum >/dev/null; then GUM=gum; elif [ -x "$SRC/bin/gum" ]; then GUM=$SRC/bin/gum; fi
+fi
+
+# ---- 表示と入力 ----
+title() { if [ -n "$GUM" ]; then "$GUM" style --bold --foreground 212 "$*"; else echo "== $* =="; fi; }
+info() { if [ -n "$GUM" ]; then "$GUM" style --foreground 245 "$*"; else echo "$*"; fi; }
+die() { echo "noveler: $*" >&2; exit 1; }
+
+# ask <問い> <既定値> → 答えを標準出力に
+ask() {
+  if [ -n "$YES" ]; then echo "$2"; return; fi
+  if [ -n "$GUM" ]; then "$GUM" input --header "$1" --value "$2" </dev/tty; return; fi
+  local r
+  read -r -p "$1 [$2]: " r </dev/tty
+  echo "${r:-$2}"
+}
+
+# choose <問い> <既定値> <選択肢...>
+choose() {
+  local q=$1 d=$2
+  shift 2
+  if [ -n "$YES" ] || [ $# -eq 1 ]; then echo "$d"; return; fi
+  if [ -n "$GUM" ]; then "$GUM" choose --header "$q" --selected "$d" "$@" </dev/tty; return; fi
+  echo "${q}（$*）" >&2
+  local r
+  read -r -p "> [$d]: " r </dev/tty
+  echo "${r:-$d}"
+}
+
+# confirm <問い> → はいなら 0
+confirm() {
+  if [ -n "$YES" ]; then return 0; fi
+  if [ -n "$GUM" ]; then "$GUM" confirm --default=false "$1" </dev/tty; return; fi
+  local r
+  read -r -p "$1 [y/N]: " r </dev/tty
+  case $r in y | Y | yes) return 0 ;; *) return 1 ;; esac
+}
+
+# spin <見出し> <コマンド...>
+spin() {
+  local t=$1
+  shift
+  if [ -n "$GUM" ]; then "$GUM" spin --show-error --title "$t" -- "$@"; else echo "$t"; "$@"; fi
+}
+
+# ---- 原稿のリポジトリと作品 ----
+# 今いる所から上へ、.agents/ のあるフォルダを探す
+find_repo() {
+  local d=$PWD
+  while [ "$d" != / ]; do
+    [ -d "$d/.agents" ] && { echo "$d"; return; }
+    d=$(dirname "$d")
+  done
+  return 1
+}
+need_repo() { find_repo || die "原稿のリポジトリ（.agents/ のあるフォルダ）の中で実行してください。作るときは noveler new"; }
+# 作品 = manuscript/ を持つ直下のフォルダ
+works() { local w; for w in "$1"/*/manuscript; do [ -d "$w" ] && basename "$(dirname "$w")"; done; return 0; }
+pnpm_cmd() { if command -v pnpm >/dev/null; then pnpm "$@"; else npx -y pnpm@11 "$@"; fi; }
+
+# ---- 道具 ----
+# gum を GitHub Releases から落とし、checksums.txt で照合して $SRC/bin/gum に置く。失敗しても止めない
+fetch_gum() {
+  [ "$TOOLS" = mise ] && return 0
+  command -v gum >/dev/null && return 0
+  if [ -x "$SRC/bin/gum" ] && "$SRC/bin/gum" --version 2>/dev/null | grep -q "$GUM_VERSION"; then return 0; fi
+  local os arch name base tmp sum want
+  case $(uname -s) in Darwin) os=Darwin ;; Linux) os=Linux ;; *) echo "gum: この OS には入れない。素の表示で続ける"; return 0 ;; esac
+  case $(uname -m) in arm64 | aarch64) arch=arm64 ;; x86_64 | amd64) arch=x86_64 ;; *) echo "gum: この CPU には入れない。素の表示で続ける"; return 0 ;; esac
+  name=gum_${GUM_VERSION}_${os}_${arch}
+  base=https://github.com/charmbracelet/gum/releases/download/v$GUM_VERSION
+  tmp=$(mktemp -d "${TMPDIR:-/tmp}/noveler-gum.XXXXXX")
+  if curl -fsSL -o "$tmp/$name.tar.gz" "$base/$name.tar.gz" && curl -fsSL -o "$tmp/checksums.txt" "$base/checksums.txt"; then
+    want=$(awk -v f="$name.tar.gz" '$2 == f { print $1 }' "$tmp/checksums.txt")
+    if command -v sha256sum >/dev/null; then sum=$(sha256sum "$tmp/$name.tar.gz" | cut -d' ' -f1); else sum=$(shasum -a 256 "$tmp/$name.tar.gz" | cut -d' ' -f1); fi
+    if [ -n "$want" ] && [ "$sum" = "$want" ] && tar -xzf "$tmp/$name.tar.gz" -C "$tmp" "$name/gum"; then
+      mv "$tmp/$name/gum" "$SRC/bin/gum"
+      echo "gum $GUM_VERSION: $SRC/bin/gum（sha256 照合済み）"
+    else
+      echo "gum: sha256 が合わない。素の表示で続ける"
+    fi
+  else
+    echo "gum: 落とせなかった。素の表示で続ける"
+  fi
+  rm -rf "$tmp"
+}
+
+# install.sh と update から呼ぶ。gum・syuki・~/.local/bin/noveler を揃える
+cmd_setup() {
+  fetch_gum
+  uv tool install --force "$SYUKI_SPEC"
+  mkdir -p "$HOME/.local/bin"
+  ln -sf "$SRC/bin/noveler" "$HOME/.local/bin/noveler"
+  echo "link: ~/.local/bin/noveler -> $SRC/bin/noveler"
+  case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) echo "~/.local/bin が PATH にありません。シェルの設定に export PATH=\"\$HOME/.local/bin:\$PATH\" を足してください" ;; esac
+}
+
+# ---- サブコマンド ----
+cmd_new() {
+  local dir=${1:-}
+  [ -n "$dir" ] || dir=$(ask "原稿のリポジトリを作るフォルダ" novels)
+  mkdir -p "$dir"
+  dir=$(cd "$dir" && pwd)
+  title "原稿のリポジトリ: $dir"
+  [ -d "$dir/.git" ] || git -C "$dir" init -q
+  if [ -d "$dir/.agents" ]; then
+    info "ハーネスはもう入っている（.agents/）。入れ直すときは noveler update"
+  else
+    local packs pack mode
+    packs=$(ls "$SRC/harness/packs")
+    # shellcheck disable=SC2086
+    pack=${NOVELER_PACK:-$(choose "文体パック" light-novel $packs)}
+    mode=${NOVELER_MODE:-$(choose "本文を書くのは（ai: AI が書く / human: 自分で書いて AI は見るだけ）" ai ai human)}
+    case $mode in ai | human) ;; *) die "mode は ai か human: $mode" ;; esac
+    bash "$SRC/harness/scripts/install.sh" "$dir" "$pack"
+    local r=$dir/.agents/roles.toml
+    sed -e "s/^write = .*/write = \"$mode\"/" -e "s/^pack = .*/pack = \"$pack\"/" "$r" >"$r.tmp" && mv "$r.tmp" "$r"
+  fi
+  [ -e "$dir/package.json" ] || printf '{\n  "name": "%s",\n  "private": true\n}\n' "$(basename "$dir" | tr -cs 'a-z0-9-' '-' | sed 's/^-*//; s/-*$//')" >"$dir/package.json"
+  [ -e "$dir/pnpm-workspace.yaml" ] || printf 'packages:\n  - "*"\n' >"$dir/pnpm-workspace.yaml"
+  [ -e "$dir/.gitignore" ] || printf 'node_modules/\n.DS_Store\n' >"$dir/.gitignore"
+  if [ "$TOOLS" = mise ] && [ ! -e "$dir/mise.toml" ]; then
+    printf '[tools]\nnode = "22"\npnpm = "11"\nuv = "latest"\ngum = "%s"\n' "$GUM_VERSION" >"$dir/mise.toml"
+    (cd "$dir" && mise trust -q && spin "mise install" mise install)
+  fi
+  (cd "$dir" && cmd_add "${NOVELER_WORK:-}")
+  title "できました"
+  info "次: cd $dir で本文を manuscript/vol1/01.kym.txt に書き、noveler open で書斎を開く"
+}
+
+cmd_add() {
+  local repo name t author w
+  repo=$(need_repo)
+  name=${1:-}
+  [ -n "$name" ] || name=$(ask "作品のフォルダ名（英数字・-・_）" my-novel)
+  case $name in "" | *[!A-Za-z0-9_-]*) die "フォルダ名は英数字・-・_ だけ: $name" ;; esac
+  w=$repo/$name
+  [ -e "$w/book.config.js" ] && die "もうある: $w"
+  t=${NOVELER_TITLE:-$(ask "題" "$name")}
+  author=${NOVELER_AUTHOR:-$(ask "作者名" 作者)}
+  title "作品を足す: $name"
+  "${SYUKI[@]}" init "$w"
+  # 見本の形を写す（原稿と台帳は写さない）。題と作者名、出力の名前だけ差し替える
+  esc() { local s=${1//\\/\\\\}; s=${s//\"/\\\"}; printf '%s' "$s"; }
+  local cfg
+  cfg=$(<"$SAMPLE/book.config.js")
+  cfg=${cfg//\"灯台の鍵\"/\"$(esc "$t")\"}
+  cfg=${cfg//\"見本\"/\"$(esc "$author")\"}
+  printf '%s\n' "$cfg" >"$w/book.config.js"
+  cp "$SAMPLE/vivliostyle.config.js" "$SAMPLE/.gitignore" "$w/"
+  sed -e "s/\"sample-work\"/\"$name\"/" -e "s/sample-work_/${name}_/g" -e "s/\"description\": .*/\"description\": \"$(esc "$t" | sed 's/[&/\\]/\\&/g')\",/" \
+    "$SAMPLE/package.json" >"$w/package.json"
+  if ! grep -q '^title:' "$w/syuki.yml"; then
+    { printf 'title: %s\n' "$t"; cat "$w/syuki.yml"; } >"$w/syuki.yml.tmp"
+    mv "$w/syuki.yml.tmp" "$w/syuki.yml"
+  fi
+  info "作った: ${w}（本文は manuscript/vol1/<章>.kym.txt）"
+}
+
+cmd_open() {
+  local repo
+  repo=$(need_repo)
+  npx -y @narusenia/shosai "$repo"
+}
+
+cmd_build() {
+  local repo work vol script=build ws=() a pos=()
+  repo=$(need_repo)
+  for a in "$@"; do case $a in --epub) script=build:epub ;; *) pos+=("$a") ;; esac; done
+  work=${pos[0]:-}
+  vol=${pos[1]:-vol1}
+  if [ -z "$work" ]; then
+    while IFS= read -r a; do ws+=("$a"); done < <(works "$repo")
+    [ ${#ws[@]} -gt 0 ] || die "作品がありません。noveler add で足してください"
+    work=$(choose "どの作品を組むか" "${ws[0]}" "${ws[@]}")
+  fi
+  [ -f "$repo/$work/package.json" ] || die "作品が無い: $work"
+  [ -d "$repo/node_modules" ] || (cd "$repo" && spin "依存を入れています" pnpm_cmd install)
+  (cd "$repo/$work" && VOL=$vol pnpm_cmd run "$script")
+}
+
+cmd_update() {
+  title "agent-noveler を更新"
+  if [ -d "$SRC/.git" ]; then spin "git pull" git -C "$SRC" pull --ff-only; fi
+  cmd_setup
+  local repo pack
+  repo=$(find_repo) || return 0
+  if [ "$TOOLS" = mise ] && [ -f "$repo/mise.toml" ]; then (cd "$repo" && spin "mise install" mise install); fi
+  pack=$(sed -n 's/^pack = "\(.*\)"/\1/p' "$repo/.agents/roles.toml" | head -1)
+  if confirm "$repo/.agents/ を最新に入れ直しますか（roles.toml 以外の手直しは消えます）"; then
+    cp "$repo/.agents/roles.toml" "$repo/.roles.toml.bak"
+    rm -rf "$repo/.agents"
+    bash "$SRC/harness/scripts/install.sh" "$repo" "${pack:-light-novel}"
+    mv "$repo/.roles.toml.bak" "$repo/.agents/roles.toml"
+  fi
+}
+
+cmd_doctor() {
+  local t v repo w fail=0
+  title "道具（管理: ${TOOLS}）"
+  for t in git uv node pnpm gum syuki; do
+    if [ $t = gum ] && [ -n "$GUM" ]; then v="$("$GUM" --version 2>&1 | head -1)（${GUM}）"
+    elif [ $t = syuki ] && [ -n "${NOVELER_SYUKI:-}" ]; then v="NOVELER_SYUKI=$NOVELER_SYUKI"
+    elif command -v $t >/dev/null; then
+      case $t in syuki) v=$(command -v syuki) ;; *) v=$($t --version 2>&1 | head -1) ;; esac
+    else v="無し"; fi
+    printf '  %-6s %s\n' "$t" "$v"
+  done
+  printf '  %-6s %s\n' noveler "$SRC"
+  repo=$(find_repo) || { info "原稿のリポジトリの外なので syuki check は飛ばした"; return 0; }
+  title "syuki check（${repo}）"
+  for w in $(works "$repo"); do
+    [ -f "$repo/$w/syuki.yml" ] || continue
+    if "${SYUKI[@]}" check --work "$repo/$w" >/dev/null 2>&1; then echo "  $w: ok"; else echo "  $w: 違反あり（syuki check --work $w で詳しく）"; fail=1; fi
+  done
+  return $fail
+}
+
+cmd_help() {
+  cat <<'EOF'
+noveler — AI と小説を書くための道具（agent-noveler）
+
+  noveler new [フォルダ]       原稿のリポジトリを作る（git init、ハーネス、最初の作品）
+  noveler add [作品名]         作品のフォルダを足す（syuki の台帳、PDF の設定、manuscript/vol1/）
+  noveler open                 書斎（shosai）で原稿のリポジトリを開く
+  noveler build [作品] [巻]    PDF を作る（--epub で EPUB）
+  noveler update               noveler と syuki を最新にし、.agents/ を入れ直す（確認あり）
+  noveler doctor               道具の有無と版、syuki check の結果を出す
+  noveler help                 この一覧
+
+  -y, --yes                    聞かずに既定値で進める
+EOF
+}
+
+case ${1:-help} in
+  new | create-project) shift; cmd_new "$@" ;;
+  add) shift; cmd_add "$@" ;;
+  open) cmd_open ;;
+  build) shift; cmd_build "$@" ;;
+  update) cmd_update ;;
+  doctor) cmd_doctor ;;
+  _setup) cmd_setup ;;
+  help | -h | --help) cmd_help ;;
+  *) cmd_help >&2; exit 2 ;;
+esac
