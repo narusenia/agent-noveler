@@ -3,6 +3,7 @@ import shutil
 
 import pytest
 
+from syuki import check
 from syuki.cli import main
 
 
@@ -14,7 +15,9 @@ def test_init_creates_skeleton_and_checks_clean(tmp_path, capsys):
     assert main(["init", str(root)]) == 0
     assert "Exists:" in capsys.readouterr().out
     assert main(["check", "--work", str(root)]) == 0
-    assert "緩急" not in (root / "style/profile.toml").read_text(encoding="utf-8")  # 既定は general の雛形
+    # 既定のパックの雛形（このリポジトリでは general、原稿のリポジトリでは roles.toml の [style] pack）
+    tpl = check.pack_templates(root.resolve()) / "style/profile.toml"
+    assert (root / "style/profile.toml").read_text(encoding="utf-8") == tpl.read_text(encoding="utf-8")
 
 
 def test_init_copies_templates_of_the_chosen_pack(tmp_path):
