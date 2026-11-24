@@ -21,33 +21,33 @@ AI と一緒に日本語の小説を書くための道具一式です。原稿�
 curl -fsSL https://raw.githubusercontent.com/narusenia/agent-noveler/main/install.sh | bash
 ```
 
-- 途中で、道具（Node.js・pnpm・uv・gum）の管理を mise か plain から選びます。plain は、自分で入れた道具をそのまま使います。
-- [mise](https://mise.jdx.dev) で揃えるときは、末尾を `| bash -s -- --tools mise` にすると聞かれずに進みます。mise 自体は先に入れておきます。
-- 本体は `~/.local/share/agent-noveler` に入り、`noveler` は `~/.local/bin` に置かれます（`~/.local/bin` を PATH に足してください）。
-- 見た目を整える [gum](https://github.com/charmbracelet/gum) は noveler のフォルダに自動で入ります。システムには入りません。
+- The installer asks which tool manager to use for Node.js, pnpm, uv and gum: `mise` or `plain`. `plain` uses the tools you have already installed.
+- To use [mise](https://mise.jdx.dev) without being asked, end the line with `| bash -s -- --tools mise`. Install mise itself first.
+- The files go into `~/.local/share/agent-noveler`, and the `noveler` command into `~/.local/bin`. Add `~/.local/bin` to your PATH.
+- [gum](https://github.com/charmbracelet/gum), used for the prompts, is installed into the noveler folder automatically, not system-wide.
 
 ## 使い方
 
 ```sh
-noveler new ~/novels      # 原稿のリポジトリを作り、最初の作品を足す
+noveler new ~/novels      # create a manuscript repository and its first work
 cd ~/novels
-noveler open              # 書斎で開く
-noveler build             # PDF に書き出す
+noveler open              # open it in shosai
+noveler build             # build a PDF
 ```
 
 本文は作品のフォルダの `manuscript/<巻>/<章>.kym.txt` に書きます。
 
-| コマンド | すること |
+| Command | Description |
 | --- | --- |
-| `noveler new [フォルダ]` | 原稿のリポジトリを作る。ハーネスを入れ、文体パックと書き方（AI が書く／自分で書く）を選び、最初の作品を足す |
-| `noveler add [作品名]` | 作品のフォルダを足す。題と作者名を聞き、台帳と PDF の設定を置く |
-| `noveler open` | 書斎（shosai）で原稿のリポジトリを開く |
-| `noveler build [作品] [巻]` | PDF を作る。`--epub` で EPUB |
-| `noveler update` | noveler と syuki を最新にする。`.agents/` の入れ直しは確認してから |
-| `noveler doctor` | 道具の有無と版、各作品の `syuki check` の結果を表示する |
-| `noveler help` | コマンドの一覧 |
+| `noveler new [folder]` | Create a manuscript repository: install the harness, choose a style pack and a writing mode (AI writes / you write), and add the first work |
+| `noveler add [work]` | Add a work folder. Asks for the title and author, and sets up the ledger and PDF settings |
+| `noveler open` | Open the manuscript repository in shosai |
+| `noveler build [work] [volume]` | Build a PDF, or an EPUB with `--epub` |
+| `noveler update` | Update noveler and syuki, and reinstall `.agents/` after confirmation |
+| `noveler doctor` | Show installed tools and versions, and the `syuki check` result for each work |
+| `noveler help` | List the commands |
 
-`-y`（`--yes`）を付けると、聞かずに既定値で進みます。
+`-y` (`--yes`) skips the prompts and uses the defaults.
 
 ### 道具を一つずつ入れる
 
