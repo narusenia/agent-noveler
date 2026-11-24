@@ -31,16 +31,14 @@ SHOSAI_WORKS=~/novels pnpm review
 
 作品のフォルダの形は `examples/sample-work/` と同じです。`manuscript/<巻>/<章>.kym.txt` に本文を置き、syuki を使うなら `syuki.yml` と `ledger/` を置きます。雛形は `syuki init <作品のフォルダ>` で作れます。
 
-## 入れ方（公開前）
-
-まだ PyPI と npm には公開していません。公開後は次の名前で入れられるようにします。
+## 入れ方
 
 | 道具 | 包みの名前 | 入れ方 |
 | --- | --- | --- |
-| syuki | `syuki`（PyPI） | `uv tool install syuki`（未登録語の照合も使うなら `uv tool install 'syuki[ja]'`） |
-| shosai | `@narusenia/shosai`（npm） | `npx @narusenia/shosai` |
+| shosai | `@narusenia/shosai`（npm） | `npx @narusenia/shosai ~/novels`（作品のフォルダが並んだフォルダを渡す） |
+| syuki | `syuki`（PyPI） | まだ PyPI に公開していません。今はこのリポジトリから `uv tool install ./packages/syuki` で入れてください |
 
-`npx` で起動するための入口はまだありません。今はこのリポジトリから `pnpm review` で起動してください。
+npx で起動した書斎は、PATH の `syuki` を呼んで台帳を出します。syuki を入れていなくても、本文を読む、赤を入れる、組版を見る、はそのまま使えます。
 
 ## エージェントの道具（harness）
 
