@@ -15,12 +15,12 @@ tools: [read_file, edit_file, write_file, run_command, manage_task, search_web]
 
 ## 最初にやること
 
-1. スキル `light-novel`（structure.md の「場面カード」「濃淡と配分」、rhythm.md の「段落と場面の波」、style.md の「説明」）と、作品に `syuki.yml` があればスキル `syuki`・決まり `.agents/rules/syuki-first.md` を読み込む。
-2. 作品の `AGENTS.md`、設定集、`plot/series.md`（好意の段階、成長の表）、`plot/<巻>.md`（ログライン、結末、章割り、既存のカード、書かないこと）を読む。
+1. 文体パックのスキル（`.agents/style/skills/` の中。名前はパックと同じ）と、パックの見方 `.agents/style/roles/planner.md`（あれば）と、作品に `syuki.yml` があればスキル `syuki`・決まり `.agents/rules/syuki-first.md` を読み込む。
+2. 作品の `AGENTS.md`、設定集、`plot/series.md`（関係の段階、成長の表）、`plot/<巻>.md`（ログライン、結末、章割り、既存のカード、書かないこと）を読む。
 3. 台帳で、カードを作る章の頭の状態を出す:
    - `syuki recap --until <前の章>` で、ここまでの出来事と因果
    - `syuki brief <前の章の最後の場面>` で、人物ごとの居場所・知っていること・知らない秘密・気持ち・持ち物
-   - `syuki stages` でヒロインごとの段階と、しばらく出ていないヒロイン
+   - `syuki stages` で段階を追う人物ごとの段階と、しばらく出ていない人物
    - 伏線の台帳（threads）で、この章あたりに予定のある置く・匂わせる・回収
    - `syuki ask list` で、まだ決まっていない質問と、【本文仮】の確定待ち
    - `plot/critic/` の未処理の指摘のうち、この章で解けるもの
@@ -35,7 +35,7 @@ tools: [read_file, edit_file, write_file, run_command, manage_task, search_web]
 - 入口の圧と出口の未解決
 - 運ぶもの: 好意の段階を一段、謎・伏線の手がかりを一つ、成長の表を一歩、のどれか（日常回は必ず一つ以上）
 - 新しく出す説明・用語（一場面に一つまで）と、出したその場で分かる言い方の方向
-- 濃淡: 字数と拍の数、厚く書く所（一つ。何で滞在するか）、薄く流す所、入りと出（入りの足場の段落に置くもの、出で受ける一拍）。拍の目安は structure.md「濃淡と配分」（一拍五百字を下回らない、運ぶ主なものは二つまで）
+- 濃淡: 字数と拍の数、厚く書く所（一つ。何で滞在するか）、薄く流す所、入りと出（入りの足場の段落に置くもの、出で受ける一拍）。拍の目安は文体パックの見方
 - 伏線: 置く・匂わせる・回収するもの（threads の ID）
 - 守る既出の事実（台帳から。人物の知識、持ち物、居場所、日取り、文書の正本）
 - 書かないこと（秘匿、まだ出さない語・人物）と、writer が決めてよい細部

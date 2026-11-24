@@ -14,9 +14,10 @@ bash scripts/install.sh ~/novels [文体パック]
 | `skills/` | syuki の使い方、壁打ち（spar）、初見読み（first-read）、herdr の agy への頼み方 |
 | `scripts/` | 役の担い手を引く `role.py`、頼む入口 `ask.sh`、指摘ファイルに赤を積む `review_add.py`、`link-pack.sh`、`install.sh` |
 | `roles.toml` | 役ごとの担い手とモデル、本文を誰が書くか（`[mode] write`）、使う文体パック |
-| `packs/` | 文体パック。今は `light-novel` だけ |
+| `packs/` | 文体パック。`light-novel` と最小の `general`。作り方は `packs/README.md` |
+| `style` | 使っている文体パックへのリンク。役の手順書は `style/roles/<役>.md` でパックの見方を読む |
 
-`skills/`・`rules/`・`agents/` の中で `packs/` を指しているリンクは、`link-pack.sh` がつないだ文体パックの中身です。パックを替えるときは `bash scripts/link-pack.sh <名前>` を実行し、`roles.toml` の `[style] pack` も同じ名前にします。
+`skills/`・`rules/`・`agents/` の中で `packs/` を指しているリンクと `style` は、`link-pack.sh` がつないだ文体パックの中身です。パックを替えるときは `bash scripts/link-pack.sh <名前>` を実行します（`roles.toml` の `[style] pack` も書き換わる）。
 
 テスト: `python3 scripts/test_role.py`、`python3 scripts/test_review_add.py`
 

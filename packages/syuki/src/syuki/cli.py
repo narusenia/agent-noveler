@@ -183,7 +183,7 @@ def cmd_style(work: Work, args) -> int:
     if args.action in ("endings", "heat"):
         scripts = check.lint_scripts(work.root)
         if scripts is None:
-            print("syuki: light-novel の scripts が見つからない", file=sys.stderr)
+            print("syuki: 文体パックの scripts が見つからない", file=sys.stderr)
             return 2
         return (cmd_endings if args.action == "endings" else cmd_heat)(work, args, scripts)
     if args.action == "excess":
@@ -204,7 +204,7 @@ def cmd_style(work: Work, args) -> int:
         return 0
     scripts = check.lint_scripts(work.root)
     if scripts is None:
-        print("syuki: light-novel の scripts が見つからない", file=sys.stderr)
+        print("syuki: 文体パックの scripts が見つからない", file=sys.stderr)
         return 2
     mdir = work.root / work.conf.get("manuscript", "manuscript")
 
@@ -240,7 +240,7 @@ def cmd_style(work: Work, args) -> int:
 def cmd_lint(work: Work, args) -> int:
     scripts = check.lint_scripts(work.root)
     if scripts is None:
-        print("syuki: light-novel の scripts が見つからない", file=sys.stderr)
+        print("syuki: 文体パックの scripts が見つからない", file=sys.stderr)
         return 2
     try:
         chs = [work.chapter(*reversed(t.split("/", 1))) for t in args.chapters] or \
@@ -321,7 +321,7 @@ def cmd_init(args) -> int:
     (root / "ledger" / "vol1" / "notes").mkdir(parents=True, exist_ok=True)
     scripts = check.lint_scripts(root.resolve())
     if scripts is None:
-        print("syuki: light-novel の scripts が見つからないので init_work.py は飛ばした", file=sys.stderr)
+        print("syuki: 文体パックの scripts が見つからないので init_work.py は飛ばした", file=sys.stderr)
         return 0
     return subprocess.run([sys.executable, str(scripts / "init_work.py"), str(root)]).returncode
 
@@ -425,7 +425,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--src", help="引用「章「本文の字」」")
     s.add_argument("--note")
     s.set_defaults(func=cmd_edit)
-    s = sub.add_parser("lint", parents=[common], help="light-novel の lint（check_style・keep_check）を章ごとに回す")
+    s = sub.add_parser("lint", parents=[common], help="文体パックの lint（check_style・keep_check）を章ごとに回す")
     s.add_argument("chapters", nargs="*", help="章（既定は最後の巻の全章）")
     s.add_argument("--voice", action="store_true", help="voice_check の台詞の表も出す")
     s.set_defaults(func=cmd_lint)

@@ -1,5 +1,5 @@
 # 文体パックlight-novel の中身の一覧。ハーネスの核（syuki・shosai・役の仕組み・ジャンルを問わない役の手順）とは分けて置く。
-# scripts/link-pack.sh light-novelで、下のskills・rules・agentsをハーネスへつなぐ。
+# scripts/link-pack.sh light-novelで、下のskills・rules・agentsをハーネスへつなぎ、パックを.agents/style にリンクする。
 
 name = "light-novel"
 title = "ライトノベル・Web 小説"
@@ -7,10 +7,12 @@ description = "会話と地の文の温度、ツッコミの声、ヒロイン�
 
 [provides]
 skills = ["light-novel"]            # 書き方・直し方・lint（check_style.pyほか）
-rules = ["prose-tools.md"]          # 本文にlint と校正を当てるときの優先順位
+rules = ["prose-tools.md", "light-novel.md"]          # 本文にlint と校正を当てるときの優先順位
+#                                     light-novel.md はこのパックを使うときの決まり（lint、会話、口調）
 agents = ["slop"]                   # AI文の癖を、調査の七つの層ごとに見る役
 first_read_prompt = "first-read/prompt.md"   # 初見読者の人物像（ライトノベルをよく読む十代後半〜二十代）
 research = "docs/research.md"       # パックの根拠にした論文と資料の調査
+roles = "roles/"                    # 役ごとのジャンルの見方。.agents/style/roles/<役>.md として核の手順書が読む
 
 # 作品ごとに変えられる所。どれも作品のフォルダの中に置き、パックの中は書き換えない。
 # 書き方の詳細はskills/light-novel/SKILL.mdとreferences/ の各ファイル。

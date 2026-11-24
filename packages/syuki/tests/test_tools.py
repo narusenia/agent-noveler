@@ -41,3 +41,18 @@ def test_style_excess_takes_volume_and_chapter(sample, run):
     assert code == 0 and json.loads(out)["chapter"] == "manuscript/vol1/02.kym.txt"
     code, _ = run(sample, "style", "excess", "vol9/02", "--json")
     assert code == 2
+
+
+def test_lint_scripts_follow_style_pack(tmp_path):
+    from syuki.check import lint_scripts
+
+    agents = tmp_path / "repo" / ".agents"
+    work = tmp_path / "repo" / "mywork"
+    work.mkdir(parents=True)
+    for pack in ("light-novel", "mystery"):
+        (agents / "skills" / pack / "scripts").mkdir(parents=True)
+    assert lint_scripts(work) == agents / "skills" / "light-novel" / "scripts"  # roles.toml が無ければ light-novel
+    (agents / "roles.toml").write_text('[style]\npack = "mystery"\n', encoding="utf-8")
+    assert lint_scripts(work) == agents / "skills" / "mystery" / "scripts"
+    (work / "roles.toml").write_text('[style]\npack = "light-novel"\n', encoding="utf-8")  # 作品の roles.toml が優先
+    assert lint_scripts(work) == agents / "skills" / "light-novel" / "scripts"

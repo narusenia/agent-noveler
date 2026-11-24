@@ -35,7 +35,7 @@ syuki <コマンド> --work <作品> [--json]  # ほかの場所から呼ぶ
 1. 場面の表（`ledger/<巻>/scenes.yaml`）に場面ごとの一行を足す。本文の場面転換の数と合わせる。
 2. 出来事を記録する。YAML を直接書くか `syuki add know --at 01:4 --who ソラ --what 地下の扉 --src '01「地下の扉を見てみろ」'`（種類は know・feel・move・plant・hint・payoff・stage。知る・気持ち・移る・置く・匂わせる・回収・段階にあたる）伏線の plant・hint・payoff にも `--src` を付けると、`threads` と shosai が本文の場所を引ける。
 3. `syuki check` — 違反があれば終了コード 1。「確認」は違反に数えない（登録していない制度・役職・施設らしい語、知る前の人物が秘密の目印の語を口にした所など）。未登録語の照合は sudachipy が要る（`syuki[ja]` で入れる）。無ければ飛ばして知らせる。
-4. `syuki lint [章…] [--voice]` — light-novel の check_style（`--profile` に `style/profile.toml`）と keep_check を章ごとに回し、同じ巻のほかの章より出すぎた語の並び（上位五つ、判断）も出す。読み方は `.agents/rules/prose-tools.md`。
+4. `syuki lint [章…] [--voice]` — 文体パックの check_style（`.agents/skills/<パック>/scripts/`。パックは roles.toml の `[style] pack`。`--profile` に `style/profile.toml`）と keep_check を章ごとに回し、同じ巻のほかの章より出すぎた語の並び（上位五つ、判断）も出す。読み方は `.agents/rules/prose-tools.md`。
 5. `syuki render` — 生成物を作り直す。
 
 ## 直したあと
@@ -50,8 +50,8 @@ syuki <コマンド> --work <作品> [--json]  # ほかの場所から呼ぶ
 
 - `syuki ask add "質問" [--at 04:3] [--settle "答え"] [--quiet]`（`--settle` で足してすぐ決着、`--quiet` で足した ID だけを出す。ID を拾うときは `--quiet` の出力を使う。質問文を grep しない）
 - `syuki ask list [--all] [--questions]`（既定は【本文仮】の確定待ちも出る。`--questions` で作者への問いだけ）、`syuki ask settle Q-003 "答え"`。
-- `syuki stages` — ヒロインごとの章末の好意の段階と、しばらく出ていないヒロイン。
+- `syuki stages` — 段階を追う人物ごとの章末の段階と、しばらく出ていない人物。
 
 ## 新しい作品
 
-`syuki init <作品>` — `syuki.yml` と `ledger/` の雛形を作り、light-novel の `init_work.py` も呼ぶ。作品だけの照合は `ledger/checks.py` に書く（`references/schema.md` の最後）。
+`syuki init <作品>` — `syuki.yml` と `ledger/` の雛形を作り、文体パックの `init_work.py`（あれば） も呼ぶ。作品だけの照合は `ledger/checks.py` に書く（`references/schema.md` の最後）。

@@ -29,7 +29,9 @@ case $act in
       ex+="### 見本 ${f##*/}"$'\n\n'"$(awk 'NR==1&&/^---$/{f=1;next} f&&/^---$/{f=0;next} !f' "$f" | head -n "${SPAR_SAMPLE_LINES:-80}")"$'\n\n'
     done
     [ -n "$ex" ] && ex+=$'---\n\n'
-    msg="$(cat "$here/role.md")"$'\n\n---\n\n'"$ex$body" ;;
+    # 文体パックの spar の見方（.agents/style/roles/spar.md）があれば、役の指示に足す
+    lens="$here/../../style/roles/spar.md"; role=$(cat "$here/role.md"); [ -f "$lens" ] && role+=$'\n\n'"$(cat "$lens")"
+    msg="$role"$'\n\n---\n\n'"$ex$body" ;;
   ask)
     [ -f "$state" ] || { echo "会話 $name がない。先に start する" >&2; exit 2; }
     route=$(sed -n 1p "$state"); id=$(sed -n 2p "$state"); msg=$body ;;

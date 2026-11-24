@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ハーネスを原稿のリポジトリに入れる。
-#   install.sh <原稿のリポジトリ> [文体パック]   既定のパックはlight-novel
+#   install.sh <原稿のリポジトリ> [文体パック]   既定のパックはlight-novel（packs/ のフォルダ名。general なども選べる）
 #
 # 1. <リポジトリ>/.agents/ にハーネスを写す（もうあれば止まる）
 # 2. 文体パックを.agents/のskills・rules・agentsにつなぐ（link-pack.sh）

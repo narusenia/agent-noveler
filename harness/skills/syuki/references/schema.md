@@ -168,7 +168,7 @@ routes:
 | feel（気持ち） | 人物の相手への気持ちが変わる（相手ごとに最新が残る） | who, to, what |
 | move（移る） | 持ち物が移る。`from` を書けば、その時の持ち主と合うかを照合 | what（持ち物）, to（人物か場所）, from |
 | plant・hint・payoff（置く・匂わせる・回収） | 伏線 | what（threads の `id`） |
-| stage（段階） | 好意の段階が進む | who（stages のヒロイン）, what（段階） |
+| stage（段階） | 好意の段階が進む | who（stages の人物）, what（段階） |
 
 どれにも `src`（引用）と `note` を付けられる。`who` は一人なら文字、二人以上なら並び。
 

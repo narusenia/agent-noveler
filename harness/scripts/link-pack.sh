@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # 文体パックの中身（skills/・rules/・agents/）を、ハーネスの同じ名前のフォルダへシンボリックリンクでつなぐ。
-# つないだあとは、パックのスキルや決まりを.agents/skills/<名前> のような今までと同じパスで読める。
+# あわせて style → packs/<パック> を張り、roles.toml の [style] pack をパックの名前にする。
+# つないだあとは、パックのスキルや決まりを.agents/skills/<名前> のような今までと同じパスで、
+# 役ごとの見方を.agents/style/roles/<役>.md で読める。
 #   link-pack.sh <パック>   つなぐ。前につないだパックのリンクは先に外す
 #   link-pack.sh --off      外すだけ
-# 使うパックはroles.toml の[style] packにも書いておく（first-read がそこから初見読者の人物像を読む）。
 set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 
@@ -19,6 +20,7 @@ for d in skills rules agents; do
     if [ -L "$l" ]; then case $(readlink "$l") in ../packs/*) rm "$l" ;; esac; fi
   done
 done
+[ -L "$root/style" ] && rm "$root/style"
 [ "${1:-}" = --off ] && { echo "unlinked"; exit 0; }
 
 for d in skills rules agents; do
@@ -29,4 +31,7 @@ for d in skills rules agents; do
     ln -s "../packs/$pack/$d/$n" "$root/$d/$n"
   done
 done
+ln -s "packs/$pack" "$root/style"
+r=$root/roles.toml
+sed "s/^pack = .*/pack = \"$pack\"/" "$r" >"$r.tmp" && mv "$r.tmp" "$r"
 echo "linked: $pack"

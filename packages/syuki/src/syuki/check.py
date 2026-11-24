@@ -209,13 +209,21 @@ def check_threads(work: Work, r: Report):
                 r.add("thread", f"{t.get('id')} は {work.label(pt)} で回収の予定だが、回収の記録が無い", work.ledger_file("threads"))
 
 
+def style_pack(base: Path, root: Path) -> str:
+    """使う文体パックの名前。作品の roles.toml、ハーネスの roles.toml の [style] pack の順に引き、無ければ light-novel。"""
+    for f in (root / "roles.toml", base / "roles.toml"):
+        if f.is_file() and (pack := tomllib.loads(f.read_text(encoding="utf-8")).get("style", {}).get("pack")):
+            return pack
+    return "light-novel"
+
+
 def lint_scripts(root: Path) -> Path | None:
-    """light-novel の lint のフォルダを、作品から上へ、無ければ syuki の置き場所から上へたどって探す。"""
+    """文体パックの lint のフォルダ（skills/<パック>/scripts）を、作品から上へ、無ければ syuki の置き場所から上へたどって探す。"""
     here = Path(__file__).resolve()
     for d in [root, *root.parents, *here.parents]:
         for base in (".agents", "harness"):  # 作品のリポジトリに写したハーネスか、このリポジトリの harness/
-            p = d / base / "skills" / "light-novel" / "scripts"
-            if p.is_dir():
+            b = d / base
+            if b.is_dir() and (p := b / "skills" / style_pack(b, root) / "scripts").is_dir():
                 return p
     return None
 
@@ -226,7 +234,7 @@ def check_keep(work: Work, r: Report):
     if not keep.is_file():
         return
     if scripts is None:
-        r.notices.append("light-novel の scripts が見つからないので keep.md の照合を飛ばした")
+        r.notices.append("文体パックの scripts が見つからないので keep.md の照合を飛ばした")
         return
     sys.path.insert(0, str(scripts))
     keep_bytecode, sys.dont_write_bytecode = sys.dont_write_bytecode, True  # スキルのフォルダに __pycache__ を作らない

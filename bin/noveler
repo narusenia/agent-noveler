@@ -157,7 +157,7 @@ cmd_new() {
     local packs pack mode layout
     layout=${LAYOUT:-$(choose "Layout: single (works at the repo root) / packages (works under packages/, for several works)" single single packages)}
     case $layout in single | packages) ;; *) die "layout must be single or packages: $layout" ;; esac
-    packs=$(ls "$SRC/harness/packs")
+    packs=$(cd "$SRC/harness/packs" && for f in */pack.toml; do echo "${f%/pack.toml}"; done)
     # shellcheck disable=SC2086
     pack=${NOVELER_PACK:-$(choose "Style pack" light-novel $packs)}
     mode=${NOVELER_MODE:-$(choose "Writing mode (ai: AI writes, you review / human: you write, AI reviews)" ai ai human)}
