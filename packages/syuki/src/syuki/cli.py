@@ -399,7 +399,7 @@ def build_parser() -> argparse.ArgumentParser:
         s.set_defaults(func=cmd_query)
     s = sub.add_parser("render", parents=[common], help="台帳から人物・設定・地図・文書・状態表の Markdown を作る")
     s.set_defaults(func=cmd_render)
-    s = sub.add_parser("stages", parents=[common], help="ヒロインごとの好意の段階と、しばらく出ていないヒロイン")
+    s = sub.add_parser("stages", parents=[common], help="人物ごとの好意の段階と、しばらく出ていない人物")
     s.set_defaults(func=cmd_stages)
     s = sub.add_parser("ask", parents=[common], help="作者に確かめたいことの待ち行列")
     acts = s.add_subparsers(dest="action", required=True)

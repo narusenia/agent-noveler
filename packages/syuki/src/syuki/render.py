@@ -167,7 +167,7 @@ def render(work: Work) -> list[str]:
 
 
 def stages(work: Work, absent_after: int = 2):
-    """ヒロインごとの、章末の好意の段階と登場。最後の absent_after 章に出ていなければ知らせる。"""
+    """人物ごとの、章末の好意の段階と登場。最後の absent_after 章に出ていなければ知らせる。"""
     conf = work.conf.get("stages") or {}
     chs = work.chapters
     data, rows = [], []
@@ -184,7 +184,7 @@ def stages(work: Work, absent_after: int = 2):
         gap = len(chs) - 1 - chs.index(last_seen) if last_seen else len(chs)
         data.append({"heroine": key, "chapters": cols, "last_seen": last_seen.id if last_seen else None, "absent": gap >= absent_after})
         rows.append([key, *[c["stage"] + ("" if c["seen"] else "（不在）") for c in cols], last_seen.id if last_seen else "なし"])
-    out = table(["ヒロイン", *[c.id for c in chs], "最後に出た章"], rows)
+    out = table(["人物", *[c.id for c in chs], "最後に出た章"], rows)
     away = [d["heroine"] for d in data if d["absent"]]
     if away:
         out.append(f"しばらく出ていない（{absent_after} 章以上）: " + "、".join(away))

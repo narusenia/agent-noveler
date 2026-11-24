@@ -13,7 +13,7 @@ class State:
     holder: dict[str, str] = field(default_factory=dict)  # 持ち物 -> 持ち主・置き場所
     moves: dict[str, list[dict]] = field(default_factory=dict)  # 持ち物 -> [{at, to}]
     threads: dict[str, list[dict]] = field(default_factory=dict)  # 伏線 -> [{at, kind, src}]
-    stage: dict[str, dict] = field(default_factory=dict)  # ヒロイン -> {at, what}
+    stage: dict[str, dict] = field(default_factory=dict)  # 人物 -> {at, what}
     place: dict[str, dict] = field(default_factory=dict)  # 人物 -> {at, place}
 
     def knows_secret(self, person: str, secret: str) -> bool:
