@@ -74,14 +74,14 @@ def report(text, answers, guesses=None):
         judged = [i for i in by_line if i in answers and i in guesses]
         misses = [i for i in judged if answers[i] != guesses[i]]
         for i in misses:
-            print(f"- [口調・判断] {i}行目「{'」「'.join(by_line[i])}」: 答え {answers[i]} / 推定 {guesses[i]}")
+            print(f"- [口調, judgment] line {i} 「{'」「'.join(by_line[i])}」: answer {answers[i]} / guess {guesses[i]}")
         hit = len(judged) - len(misses)
-        rate = f"（{hit / len(judged):.0%}）" if judged else ""
-        print(f"台詞ごとの当たり {hit}/{len(judged)}{rate}")
+        rate = f" ({hit / len(judged):.0%})" if judged else ""
+        print(f"Lines guessed right: {hit}/{len(judged)}{rate}")
         confused = Counter((answers[i], guesses[i]) for i in misses)
         for (a, g), n in confused.most_common(5):
-            print(f"- 取り違え: {a} → {g} {n}件")
-    print("人物ごとの分布")
+            print(f"- confused: {a} → {g} {n}")
+    print("Per character")
     profile = defaultdict(lambda: {"n": 0, "first": Counter(), "end": Counter()})
     for i, contents in by_line.items():
         who = answers.get(i)
@@ -93,9 +93,9 @@ def report(text, answers, guesses=None):
             p["first"].update(first_persons(c))
             p["end"][ending(c)] += 1
     for who, p in sorted(profile.items(), key=lambda x: -x[1]["n"]):
-        first = ", ".join(f"{w} {n}" for w, n in p["first"].most_common(3)) or "なし"
+        first = ", ".join(f"{w} {n}" for w, n in p["first"].most_common(3)) or "none"
         end = ", ".join(f"{w} {n}" for w, n in p["end"].most_common(5) if w)
-        print(f"- {who}（{p['n']}）一人称: {first} / 語尾: {end}")
+        print(f"- {who} ({p['n']}) first person: {first} / endings: {end}")
 
 
 def endings(text, names=(), answers=None):
@@ -115,18 +115,18 @@ def endings(text, names=(), answers=None):
 def main(argv):
     for stream in (sys.stdout, sys.stderr):
         stream.reconfigure(encoding="utf-8")
-    parser = argparse.ArgumentParser(description="台詞の盲検")
+    parser = argparse.ArgumentParser(description="Blind test of dialogue voices")
     sub = parser.add_subparsers(dest="command", required=True)
-    s = sub.add_parser("sheet", help="台詞だけの表を出す")
+    s = sub.add_parser("sheet", help="print a sheet of dialogue only")
     s.add_argument("file")
-    r = sub.add_parser("report", help="答えと推定を突き合わせる")
+    r = sub.add_parser("report", help="compare answers with guesses")
     r.add_argument("file")
-    r.add_argument("--answers", required=True, help="{行番号: 話者} の答え")
-    r.add_argument("--guesses", help="{行番号: 話者} の推定")
-    e = sub.add_parser("endings", help="話者の決まった台詞の文末を JSON で出す（syuki style endings が読む）")
-    e.add_argument("file", nargs="?", help="本文。省略すると標準入力")
-    e.add_argument("--names", default="", help="話者の名前（カンマ区切り）。省略すると全部の台詞")
-    e.add_argument("--answers", help="{行番号: 話者} の答え")
+    r.add_argument("--answers", required=True, help="answers as {line: speaker}")
+    r.add_argument("--guesses", help="guesses as {line: speaker}")
+    e = sub.add_parser("endings", help="print endings of lines with a known speaker as JSON (read by syuki style endings)")
+    e.add_argument("file", nargs="?", help="manuscript file (default: stdin)")
+    e.add_argument("--names", default="", help="speaker names (comma-separated; default: all lines)")
+    e.add_argument("--answers", help="answers as {line: speaker}")
     args = parser.parse_args(argv[1:])
     text = check_style.read(args.file) if args.file else sys.stdin.read()
     if args.command == "endings":

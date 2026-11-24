@@ -78,9 +78,9 @@ def check(entries, path, text, baseline=None):
         if before is not None:
             n_before, n_after = before.count(needle), after.count(needle)
             if n_after < n_before:
-                lost.append({**e, "reason": f"消えた（{n_before}→{n_after}）"})
+                lost.append({**e, "reason": f"lost ({n_before}→{n_after})"})
         elif e["scope"] not in ALL_CHAPTERS and needle not in after:
-            lost.append({**e, "reason": "見つからない"})
+            lost.append({**e, "reason": "not found"})
     return lost
 
 
@@ -92,20 +92,20 @@ def read(path):
 def main(argv):
     for stream in (sys.stdout, sys.stderr):
         stream.reconfigure(encoding="utf-8")
-    parser = argparse.ArgumentParser(description="残す文が消えていないかを確かめる")
-    parser.add_argument("file", help="本文")
-    parser.add_argument("--keep", help="残す文の一覧（既定は上へたどった style/keep.md）")
-    parser.add_argument("--baseline", metavar="元.txt", help="直す前の本文")
+    parser = argparse.ArgumentParser(description="Check that kept lines are still in the manuscript")
+    parser.add_argument("file", help="manuscript file")
+    parser.add_argument("--keep", help="list of kept lines (default: style/keep.md found by searching up)")
+    parser.add_argument("--baseline", metavar="BEFORE", help="the text before the fix")
     args = parser.parse_args(argv[1:])
 
     keep = args.keep or find_keep(os.path.dirname(os.path.abspath(args.file)))
     if not keep:
-        print("keep.md が見つからない。残す文は登録されていない。")
+        print("keep.md not found; no kept lines are registered.")
         return 0
     lost = check(load(keep), args.file, read(args.file), read(args.baseline) if args.baseline else None)
     for e in lost:
-        print(f"- [keep] {e['reason']}: {e['text']}（keep.md {e['line']}行目）")
-    print(f"残す文 {len(lost)}件が要確認" if lost else "残す文はすべて残っている")
+        print(f"- [keep] {e['reason']}: {e['text']} (keep.md line {e['line']})")
+    print(f"{len(lost)} kept line(s) to confirm" if lost else "All kept lines are present")
     return 1 if lost else 0
 
 

@@ -21,10 +21,10 @@ def main(argv):
         target = work / place
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.exists():
-            print(f"既存: {target}")
+            print(f"Exists: {target}")
             continue
         shutil.copyfile(ASSETS / name, target)
-        print(f"作成: {target}")
+        print(f"Created: {target}")
     return 0
 
 

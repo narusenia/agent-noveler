@@ -278,7 +278,7 @@ def load_profile(path, rhythm=None):
     if rhythm:
         p.rhythm = rhythm
     if p.rhythm not in RHYTHMS:
-        raise SystemExit(f"リズムの型「{p.rhythm}」は無い。{' / '.join(RHYTHMS)} から選ぶ。")
+        raise SystemExit(f"unknown rhythm {p.rhythm!r}; choose one of {' / '.join(RHYTHMS)}")
     return p
 
 
@@ -490,19 +490,19 @@ def check_pov(rows, profile, add):
             if mode.startswith("三人称") and sents:
                 mixed = names_as_subject(text, names) and first and re.search(re.escape(first) + "(は|が|の|を|に|も)", text)
                 if mixed:
-                    add("人称", i, f"同じ段落で「{names[0]}」と「{first}」が混ざっている。語りか心の声のどちらかにそろえる。", text)
+                    add("人称", i, f"同じ段落で「{names[0]}」と「{first}」が混ざっています。語りか心の声のどちらかにそろえてください。", text)
                 elif prev_kind == "dialogue" and inner_voice(tokenize(sents[0])) and not names_as_subject(sents[0], names):
                     outer = [s for s in sents[1:] if not inner_voice(tokenize(s))]
                     if outer:
                         add(
                             "人称", i,
-                            f"台詞の直後に、入口なしで心の声に入り、同じ段落で外の描写に戻っている。{names[0]}の動作か知覚から入るか、段落を分ける。",
+                            f"台詞の直後に、入口なしで心の声に入り、同じ段落で外の描写に戻っています。{names[0]}の動作か知覚から入るか、段落を分けてください。",
                             sents[0],
                         )
             elif mode.startswith("一人称"):
                 for s in sents:
                     if names_as_subject(s, names):
-                        add("人称", i, f"一人称の地の文で「{names[0]}」が主語になっている。{first or '一人称'}にするか、主語を省く。", s)
+                        add("人称", i, f"一人称の地の文で「{names[0]}」が主語になっています。{first or '一人称'}にするか、主語を省いてください。", s)
         prev_kind = kind
 
 
@@ -628,10 +628,10 @@ def check(text, profile=None, speakers=None):
         first = (sentences(line) or [line])[0]
         main_clause = first.split("、")[-1]
         if OPENING.search(main_clause):
-            add("冒頭", i, "天気・目覚め・通学路で始まっている。視点人物の欠落かフックが見える場面から入る。", first)
+            add("冒頭", i, "天気・目覚め・通学路で始まっています。視点人物の欠落かフックが見える場面から入ってください。", first)
         i, _, line = prose[-1]
         if SUMMARY_END.search(line):
-            add("章末", i, "要約で締めている。未解決を1つ残して切る。", line)
+            add("章末", i, "要約で締めています。未解決を1つ残して切ってください。", line)
 
     cliche_seen = Counter()
     simile_count = 0
@@ -650,8 +650,8 @@ def check(text, profile=None, speakers=None):
         first, last = vr[0][0], vr[-1][0]
         add(
             "声なし", first,
-            f"語り手の声が薄い地の文が{len(vr)}文続いている（{first}〜{last}行目、うち声あり{sum(r[2] for r in vr)}文）。"
-            "ツッコミかボヤキを一つ入れるか、語りを話し言葉に寄せる。山場で静かにしているなら残す。",
+            f"語り手の声が薄い地の文が{len(vr)}文続いています（{first}〜{last}行目、うち声あり{sum(r[2] for r in vr)}文）。"
+            "ツッコミかボヤキを一つ入れるか、語りを話し言葉に寄せてください。山場で静かにしているなら残してかまいません。",
             vr[0][1],
         )
     topic_hits = []
@@ -681,19 +681,19 @@ def check(text, profile=None, speakers=None):
                 cliche_seen[label] += 1
                 n = cliche_seen[label]
                 if n > limit:
-                    allowed = f"一章{limit}回まで" if limit else "使わない"
+                    allowed = f"一章{limit}回までです" if limit else "使わない語です"
                     add(
-                        "決まり文句", i, f"「{label}」が{n}回目（{allowed}）。その場の動作か物に置き換える。",
+                        "決まり文句", i, f"「{label}」が{n}回目です（{allowed}）。その場の動作か物に置き換えてください。",
                         sentence_at(line, m.start()),
                     )
 
         m = re.search(r"。[」』]", line)
         if m:
             quote = QUOTE_WITH_PERIOD.search(line)
-            add("句点", i, "閉じ括弧の前に句点がある。句点を取る。", quote.group() if quote else line)
+            add("句点", i, "閉じ括弧の前に句点があります。句点を取ってください。", quote.group() if quote else line)
         m = MARKUP.search(line)
         if m:
-            add("記号", i, "本文に太字記法か絵文字がある。外す。", sentence_at(line, m.start()))
+            add("記号", i, "本文に太字記法か絵文字があります。外してください。", sentence_at(line, m.start()))
 
         if kind == "dialogue":
             ending_key, ending_run = None, 0
@@ -709,7 +709,7 @@ def check(text, profile=None, speakers=None):
                         for _ in range(content.count(phrase)):
                             catch_lines[(name, phrase)].append(i)
                 for word, _ in ([] if skip_commas else speech_commas(content, exempt)):
-                    add("台詞の読点", i, f"台詞の「{word}、」の読点。間を聞かせたい所でなければ取る。", f"「{content}」")
+                    add("台詞の読点", i, f"台詞の「{word}、」に読点があります。間を聞かせたい所でなければ取ってください。", f"「{content}」")
 
         part = narration_part(kind, line)
         if not part:
@@ -718,7 +718,7 @@ def check(text, profile=None, speakers=None):
 
         if kind == "narration":
             if len(part) > LONG_PARAGRAPH:
-                add("説明", i, f"段落が{len(part)}字ある。会話か動作で割る。", part)
+                add("説明", i, f"段落が{len(part)}字あります。会話か動作で割ってください。", part)
             for s in sents:
                 if not s.endswith("。"):
                     ending_key, ending_run = None, 0
@@ -727,13 +727,13 @@ def check(text, profile=None, speakers=None):
                 ending_run = ending_run + 1 if key == ending_key else 1
                 ending_key = key
                 if ending_run == 3:
-                    add("文末", i, f"地の文の文末「{key}」が3連続。1つ変える。", s)
+                    add("文末", i, f"地の文の文末「{key}」が3回続いています。1つ変えてください。", s)
             for s in sents:
                 short_run = short_run + 1 if len(body(s)) < SHORT_SENTENCE else 0
                 if short_run == rhythm["choppy"]:
                     add(
                         "細切れ", i,
-                        f"{SHORT_SENTENCE}字未満の地の文が{rhythm['choppy']}文続いている。つなぐか、情景や動きを足す。", s,
+                        f"{SHORT_SENTENCE}字未満の地の文が{rhythm['choppy']}文続いています。つなぐか、情景や動きを足してください。", s,
                     )
             for s in sents:
                 toks = tokenize(s)
@@ -753,7 +753,7 @@ def check(text, profile=None, speakers=None):
                     if lo >= UNIFORM_MIN and hi <= lo * UNIFORM_SPREAD:
                         add(
                             "文長", i,
-                            f"地の文の{UNIFORM_RUN}文が{lo}〜{hi}字で揃っている。つなぐか割って長短をつける。", s,
+                            f"地の文の{UNIFORM_RUN}文が{lo}〜{hi}字で揃っています。つなぐか割って長短をつけてください。", s,
                         )
                         uniform_from = n
                 # 文頭の反復
@@ -761,7 +761,7 @@ def check(text, profile=None, speakers=None):
                     leads = {lead_of(r[3]) for r in run[-LEAD_RUN:]}
                     lead = lead_of(toks)
                     if len(leads) == 1 and len(lead) >= 2 and lead != lead_flagged:
-                        add("文頭", i, f"地の文が「{lead}」で{LEAD_RUN}文続けて始まっている。主語を省くか語順を変える。", s)
+                        add("文頭", i, f"地の文が「{lead}」で{LEAD_RUN}文続けて始まっています。主語を省くか語順を変えてください。", s)
                         lead_flagged = lead
                     elif len(leads) > 1:
                         lead_flagged = None
@@ -771,30 +771,30 @@ def check(text, profile=None, speakers=None):
                     if len(recent) >= NEGATION_LIMIT:
                         add(
                             "打ち消し", i,
-                            f"地の文の{NEGATION_WINDOW}文に「〜なかった。」が{len(recent)}つ。起きたことを書く。", s,
+                            f"地の文の{NEGATION_WINDOW}文に「〜なかった。」が{len(recent)}つあります。起きたことを書いてください。", s,
                         )
                         negation_flagged = n
 
         if sents and EMOTION_END.search(sents[-1]):
-            add("感情ラベル", i, "感情の名前で段落を終えている。動作か身体に置き換える。", sents[-1])
+            add("感情ラベル", i, "感情の名前で段落を終えています。動作か身体に置き換えてください。", sents[-1])
         if sents and SIMILE_END.search(sents[-1]):
-            add("比喩", i, "段落を比喩で締めている。締めは事実か動作にする。", sents[-1])
+            add("比喩", i, "段落を比喩で締めています。締めは事実か動作にしてください。", sents[-1])
         for s in sents:
             if len(body(s)) > rhythm["long"]:
-                add("長文", i, f"1文が{len(body(s))}字ある。山場でなければ割る。", s)
+                add("長文", i, f"1文が{len(body(s))}字あります。山場でなければ割ってください。", s)
             if SIMILE.search(s):
                 simile_count += 1
                 if simile_count == SIMILE_LIMIT + 1:
-                    add("比喩", i, f"この場面で比喩が{simile_count}つ目。1場面{SIMILE_LIMIT}つまで。", s)
+                    add("比喩", i, f"この場面で比喩が{simile_count}つ目です。1場面{SIMILE_LIMIT}つまでにしてください。", s)
         m = NO_CHAIN.search(part)
         if m:
-            add("の連続", i, "「の」が3つ以上続いている。語順を変えて切る。", m.group())
+            add("の連続", i, "「の」が3つ以上続いています。語順を変えて切ってください。", m.group())
 
     if voice_total >= MIN_SENTENCES and voice_count / voice_total < profile.voice_min:
         add(
             "声なし", 0,
-            f"語り手の声がある地の文が{voice_count / voice_total:.0%}（{voice_count}/{voice_total}文）。"
-            f"目安は{profile.voice_min:.0%}以上。声なしの区間にツッコミかボヤキを足す。",
+            f"語り手の声がある地の文が{voice_count / voice_total:.0%}（{voice_count}/{voice_total}文）です。"
+            f"目安は{profile.voice_min:.0%}以上です。声なしの区間にツッコミかボヤキを足してください。",
             "声の割合",
         )
 
@@ -805,8 +805,8 @@ def check(text, profile=None, speakers=None):
         shown = ", ".join(str(n) for n, _ in dropped)
         add(
             "落とし", dropped[profile.drop_limit][0],
-            f"前振りのあと一語で落とす型（短い一文段落、読点のあとの一語、「〜のは、〜だった」）が章内{len(dropped)}個"
-            f"（{shown}行目）。一章{profile.drop_limit}個まで。効く所だけ残し、ほかは前の段落につなぐか言い切りを変える。",
+            f"前振りのあと一語で落とす型（短い一文段落、読点のあとの一語、「〜のは、〜だった」）が章内に{len(dropped)}個あります"
+            f"（{shown}行目）。一章{profile.drop_limit}個までです。効く所だけ残し、ほかは前の段落につなぐか言い切りを変えてください。",
             dropped[profile.drop_limit][1],
         )
 
@@ -814,15 +814,15 @@ def check(text, profile=None, speakers=None):
     for start, end, size in flats:
         add(
             "平ら", start,
-            f"{profile.thick}字以上の地の文の段落がないまま、本文が{size}字続いている（{start}〜{end}行目）。"
-            "大事な所なら情景・体・間を一段落厚く書いて滞在する。薄く流してよい区間なら残す。",
+            f"{profile.thick}字以上の地の文の段落がないまま、本文が{size}字続いています（{start}〜{end}行目）。"
+            "大事な所なら情景・体・間を一段落厚く書いて滞在してください。薄く流してよい区間なら残してかまいません。",
             "厚い段落なし",
         )
     for start, size in short_scenes:
         add(
             "短い場面", start,
-            f"この場面は{size}字（目安{profile.scene_min}字以上）。入りと出の一拍があるか、前後の場面とつなげられないかを見る。"
-            "幕切れの短い場面として狙ったなら残す。",
+            f"この場面は{size}字です（目安は{profile.scene_min}字以上）。入りと出の一拍があるか、前後の場面とつなげられないかを見てください。"
+            "幕切れの短い場面として狙ったなら残してかまいません。",
             "場面の字数",
         )
 
@@ -832,7 +832,7 @@ def check(text, profile=None, speakers=None):
             shown = ", ".join(str(n) for n in lines)
             add(
                 "口癖", lines[limit],
-                f"{name}の口癖「{phrase}」が章内{len(lines)}回（{shown}行目）。一章{limit}回まで。効く所だけ残す。",
+                f"{name}の口癖「{phrase}」が章内に{len(lines)}回あります（{shown}行目）。一章{limit}回までです。効く所だけ残してください。",
                 phrase,
             )
 
@@ -841,29 +841,29 @@ def check(text, profile=None, speakers=None):
         lo, hi = rhythm["avg"]
         name = profile.rhythm
         if not lo <= s["avg_sentence_len"] <= hi:
-            add("文長", 0, f"地の文の平均文長 {s['avg_sentence_len']}字。{name}の目安は{lo}〜{hi}字。", "平均文長")
+            add("文長", 0, f"地の文の平均文長が{s['avg_sentence_len']}字です。{name}の目安は{lo}〜{hi}字です。", "平均文長")
         if s["single_sentence_ratio"] > rhythm["single"]:
             add(
-                "文長", 0, f"一文だけの段落が{s['single_sentence_ratio']:.0%}。{name}の目安は{rhythm['single']:.0%}まで。",
+                "文長", 0, f"一文だけの段落が{s['single_sentence_ratio']:.0%}です。{name}の目安は{rhythm['single']:.0%}までです。",
                 "一文段落",
             )
         if s["sentence_len_cv"] < rhythm["cv"]:
             add(
-                "文長", 0, f"文長のばらつき（変動係数）{s['sentence_len_cv']}。{name}の目安は{rhythm['cv']}以上。長短を混ぜる。",
+                "文長", 0, f"文長のばらつき（変動係数）が{s['sentence_len_cv']}です。{name}の目安は{rhythm['cv']}以上です。長短を混ぜてください。",
                 "ばらつき",
             )
         if topic_lines / narr_total > TOPIC_COMMA_MAX:
             shown = ", ".join(str(n) for n in topic_hits[:8]) + ("…" if len(topic_hits) > 8 else "")
             add(
                 "読点", 0,
-                f"「〇〇は、」で始まる地の文が{topic_lines}文（{topic_lines / narr_total:.0%}）。目安は{TOPIC_COMMA_MAX:.0%}まで。"
-                f"主語のあとの読点を取る（{shown}行目）。",
+                f"「〇〇は、」で始まる地の文が{topic_lines}文（{topic_lines / narr_total:.0%}）あります。目安は{TOPIC_COMMA_MAX:.0%}までです。"
+                f"主語のあとの読点を取ってください（{shown}行目）。",
                 "主語の読点",
             )
         if ended and ta_count / ended > TA_MAX:
             add(
                 "文末", 0,
-                f"地の文の{ta_count / ended:.0%}が「〜た。」で終わる。目安は{TA_MAX:.0%}まで。描写と内心の文を現在形にする。",
+                f"地の文の{ta_count / ended:.0%}が「〜た。」で終わっています。目安は{TA_MAX:.0%}までです。描写と内心の文を現在形にしてください。",
                 "タ形",
             )
 
@@ -1012,35 +1012,35 @@ def compare(before, after, profile=None, path=None, speakers=None):
 
 
 def counts(counter):
-    return ", ".join(f"{k} {v}" for k, v in counter.items()) or "なし"
+    return ", ".join(f"{k} {v}" for k, v in counter.items()) or "none"
 
 
 def where(line):
-    return "章全体" if line == 0 else f"{line}行目"
+    return "whole chapter" if line == 0 else f"line {line}"
 
 
 def print_compare(result):
-    print("比較")
-    print(f"- 解消: {counts(result['resolved'])}")
-    print(f"- 残存: {counts(result['remaining'])}")
+    print("Comparison")
+    print(f"- resolved: {counts(result['resolved'])}")
+    print(f"- remaining: {counts(result['remaining'])}")
     new = counts(result["new"])
     if result["new_findings"]:
-        new += "（" + ", ".join(where(f["line"]) for f in result["new_findings"]) + "）"
-    print(f"- 新規: {new}")
+        new += " (" + ", ".join(where(f["line"]) for f in result["new_findings"]) + ")"
+    print(f"- new: {new}")
     if result["dialogue_changes"]:
         for c in result["dialogue_changes"]:
-            old = f"{c['before_line']}行目「{c['before']}」" if c["before"] is not None else "なし"
-            new = f"{c['after_line']}行目「{c['after']}」" if c["after"] is not None else "削除"
-            print(f"- セリフ: {old} → {new}" if c["before"] is not None else f"- セリフ: 追加 {new}")
+            old = f"line {c['before_line']} 「{c['before']}」" if c["before"] is not None else "none"
+            new = f"line {c['after_line']} 「{c['after']}」" if c["after"] is not None else "deleted"
+            print(f"- dialogue: {old} → {new}" if c["before"] is not None else f"- dialogue: added {new}")
     else:
-        print("- セリフ: 変更なし")
+        print("- dialogue: unchanged")
     before, after = result["chars"]["before"], result["chars"]["after"]
     rate, within = length_change(result["chars"])
-    shown = f"（{rate:+.0%}）" if rate is not None else ""
-    mark = "" if within else "（要確認）"
-    print(f"- 字数: {before} → {after}{shown}{mark}")
+    shown = f" ({rate:+.0%})" if rate is not None else ""
+    mark = "" if within else " (to confirm)"
+    print(f"- characters: {before} → {after}{shown}{mark}")
     for e in result["keep_lost"]:
-        print(f"- 残す文: {e['reason']}「{e['text']}」（keep.md {e['line']}行目）")
+        print(f"- kept line {e['reason']}: 「{e['text']}」 (keep.md line {e['line']})")
 
 
 def read(path):
@@ -1051,18 +1051,18 @@ def read(path):
 def main(argv):
     for stream in (sys.stdin, sys.stdout, sys.stderr):
         stream.reconfigure(encoding="utf-8")
-    parser = argparse.ArgumentParser(description="ラノベ本文の機械チェック")
-    parser.add_argument("file", nargs="?", help="本文。省略すると標準入力")
-    parser.add_argument("--json", action="store_true", help="JSON で出す")
-    parser.add_argument("--fix", action="store_true", help="句点と記号を直して本文に書き戻す")
-    parser.add_argument("--baseline", metavar="元.md", help="書き換え前の本文と比べる")
-    parser.add_argument("--rhythm", choices=list(RHYTHMS), help="リズムの型")
-    parser.add_argument("--profile", help="作品の文体の設定（style/profile.toml）")
-    parser.add_argument("--paragraphs", action="store_true", help="段落ごとの文の数と声ありの文の数を JSON で出す")
-    parser.add_argument("--speakers", metavar="話者.json", help="{行番号: 話者} の表。区切り型の人物の台詞の読点を外す")
+    parser = argparse.ArgumentParser(description="Mechanical style check for light-novel prose")
+    parser.add_argument("file", nargs="?", help="manuscript file (default: stdin)")
+    parser.add_argument("--json", action="store_true", help="output JSON")
+    parser.add_argument("--fix", action="store_true", help="fix periods and symbols and write the file back")
+    parser.add_argument("--baseline", metavar="BEFORE", help="compare with the text before rewriting")
+    parser.add_argument("--rhythm", choices=list(RHYTHMS), help="rhythm type")
+    parser.add_argument("--profile", help="the work's style settings (style/profile.toml)")
+    parser.add_argument("--paragraphs", action="store_true", help="output sentence and voiced-sentence counts per paragraph as JSON")
+    parser.add_argument("--speakers", metavar="SPEAKERS.json", help="{line: speaker} table; skips commas in dialogue of characters whose voice uses them")
     args = parser.parse_args(argv[1:])
     if args.fix and not args.file:
-        parser.error("--fix には本文のファイルを指定する")
+        parser.error("--fix needs a manuscript file")
 
     start = os.path.dirname(os.path.abspath(args.file)) if args.file else os.getcwd()
     profile = load_profile(args.profile or find_profile(start), args.rhythm)
@@ -1105,19 +1105,19 @@ def main(argv):
         print(json.dumps(data, ensure_ascii=False, indent=2))
     else:
         if fixed is not None:
-            print("自動修正 " + (", ".join(f"{k} {v}件" for k, v in fixed.items()) or "なし"))
+            print("Auto-fixed: " + (", ".join(f"{k} {v}" for k, v in fixed.items()) or "none"))
         for f in findings:
-            label = f"{f.kind}・判断" if f.judgment else f.kind
+            label = f"{f.kind}, judgment" if f.judgment else f.kind
             print(f"- [{label}] {where(f.line)}: {f.message}")
         if result is not None:
             print_compare(result)
         summary = (
-            f"型 {profile.rhythm} / 会話比率 {s['dialogue_ratio']:.0%} / 地の文の平均文長 {s['avg_sentence_len']}字"
-            f" / 文長のばらつき {s['sentence_len_cv']} / 一文段落 {s['single_sentence_ratio']:.0%}"
-            f" / 違反 {len(violations)}件 / 判断 {len(findings) - len(violations)}件"
+            f"rhythm {profile.rhythm} / dialogue {s['dialogue_ratio']:.0%} / avg narration sentence {s['avg_sentence_len']} chars"
+            f" / sentence length CV {s['sentence_len_cv']} / one-sentence paragraphs {s['single_sentence_ratio']:.0%}"
+            f" / {len(violations)} violations / {len(findings) - len(violations)} judgments"
         )
         if result is not None and not result["ok"]:
-            summary += " / 比較 要確認"
+            summary += " / comparison: to confirm"
         print(summary)
     return 1 if violations or (result is not None and not result["ok"]) else 0
 
