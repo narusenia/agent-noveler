@@ -1,0 +1,1 @@
+.agents/agents/planner.md の手順で planner を担当して。作品は sample-work、第一巻の第二章。あらすじは sample-work/brief.md。カードは sample-work/plot.md の第二章の節に【案】で書く。これはハーネスの見本を作る実験で、作者は答えられないので、作者への問いは出さずに、前後の流れに一番合う案を自分で選んでカードに入れて。コミットはしない。

@@ -1,0 +1,1 @@
+.agents/agents/writer.md の手順で writer を担当して。作品は sample-work、第一巻の第二章。sample-work/plot.md の第二章のカード（【案】のままでよい）を本文にして、sample-work/manuscript/vol1/02.kym.txt に書く。spar・finalize・lint（syuki lint）・syuki check・台帳の記録・なんで？テストまで手順どおりに回す。作者への問いは出さずに自分で決める（見本の実験なので作者は答えない）。コミットはしない。
