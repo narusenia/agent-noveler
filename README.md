@@ -171,7 +171,6 @@ harness/packs/light-novel/
   skills/           書き方・直し方・lint（light-novel スキル）
   rules/            本文に lint と校正を当てるときの優先順位
   roles/            役ごとのジャンルの見方（核の手順書が .agents/style/roles/<役>.md として読む）
-  agents/           パックが足す役（slop: AI 文の癖を見る）
   first-read/       初見読者の人物像（ライトノベルをよく読む十代後半〜二十代）
   docs/research.md  パックの根拠にした論文と資料の調査
 ```
