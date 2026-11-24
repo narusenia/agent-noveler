@@ -18,7 +18,7 @@ description: AI 文の癖（AI slop）を見る担当。文体パックの調査
 ## 最初にやること
 
 1. スキル `light-novel` を読み込む（スキルの読み込み機能、なければ `.agents/skills/light-novel/SKILL.md`）。`references/ai-tells.md` と `references/check.md` を判断に使う。決まり `.agents/rules/prose-tools.md`、作品に `syuki.yml` があればスキル `syuki` と `.agents/rules/syuki-first.md` も読み込む。
-2. `.agents/packs/light-novel/docs/research.md` の「要旨」と「第3部」を読む。下の層はここの七つに対応する。
+2. 対象の章と、作品に `syuki.yml` があれば `syuki brief 章:場面` を先に読む。plot 全体や前の章は読まない（比べるのは下の機械の材料で足りる）。`.agents/packs/light-novel/docs/research.md` は丸ごと読まず、層の判断に迷ったときだけ「第3部」の該当の節を引く。下の層はここの七つに対応する。
 3. 作品の `AGENTS.md`（文体の決まり）、`style/keep.md`、`style/samples/contrast.md`、`style/profile.toml` を読む。
 4. 前の報告（`plot/critic/*-slop-*.md`）があれば読み、直った所と残っている所を分ける。
 

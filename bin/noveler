@@ -4,7 +4,7 @@
 # 答えは環境変数でも渡せる（--yes か NOVELER_YES=1 で聞かずに既定値を使う）:
 #   NOVELER_PACK（文体パック）、NOVELER_MODE（ai|human）、NOVELER_WORK（作品のフォルダ名）、
 #   NOVELER_TITLE（題）、NOVELER_AUTHOR（作者名）、NOVELER_SYUKI（syuki の呼び方。既定は PATH の syuki）、
-#   NOVELER_LAYOUT（single|packages。--layout でも渡せる）
+#   NOVELER_LAYOUT（single|packages。--layout でも渡せる）、NOVELER_FLOW（full|standard|lite。--flow でも渡せる）
 set -euo pipefail
 
 # このファイルの実体の場所（~/.local/bin からのリンクをたどる）
@@ -32,11 +32,12 @@ fi
 YES=${NOVELER_YES:-}
 HELP=
 LAYOUT=${NOVELER_LAYOUT:-}
+FLOW=${NOVELER_FLOW:-}
 args=()
 next=
 for a in "$@"; do
-  if [ -n "$next" ]; then LAYOUT=$a; next=; continue; fi
-  case $a in -y | --yes) YES=1 ;; -h | --help) HELP=1 ;; --layout) next=1 ;; --layout=*) LAYOUT=${a#*=} ;; *) args+=("$a") ;; esac
+  case $next in layout) LAYOUT=$a; next=; continue ;; flow) FLOW=$a; next=; continue ;; esac
+  case $a in -y | --yes) YES=1 ;; -h | --help) HELP=1 ;; --layout) next=layout ;; --layout=*) LAYOUT=${a#*=} ;; --flow) next=flow ;; --flow=*) FLOW=${a#*=} ;; *) args+=("$a") ;; esac
 done
 set -- ${args[@]+"${args[@]}"}
 
@@ -154,7 +155,7 @@ cmd_new() {
   if [ -d "$dir/.agents" ]; then
     info "Harness already installed (.agents/). To reinstall: noveler update"
   else
-    local packs pack mode layout
+    local packs pack mode layout flow
     layout=${LAYOUT:-$(choose "Layout: single (works at the repo root) / packages (works under packages/, for several works)" single single packages)}
     case $layout in single | packages) ;; *) die "layout must be single or packages: $layout" ;; esac
     packs=$(cd "$SRC/harness/packs" && for f in */pack.toml; do echo "${f%/pack.toml}"; done)
@@ -162,9 +163,11 @@ cmd_new() {
     pack=${NOVELER_PACK:-$(choose "Style pack" light-novel $packs)}
     mode=${NOVELER_MODE:-$(choose "Writing mode (ai: AI writes, you review / human: you write, AI reviews)" ai ai human)}
     case $mode in ai | human) ;; *) die "mode must be ai or human: $mode" ;; esac
+    flow=${FLOW:-$(choose "Chapter flow (standard: one combined review per chapter / full: every review step / lite: fewest steps, fewest tokens)" standard standard full lite)}
+    case $flow in full | standard | lite) ;; *) die "flow must be full, standard or lite: $flow" ;; esac
     bash "$SRC/harness/scripts/install.sh" "$dir" "$pack"
     local r=$dir/.agents/roles.toml
-    sed -e "s/^write = .*/write = \"$mode\"/" -e "s/^pack = .*/pack = \"$pack\"/" "$r" >"$r.tmp" && mv "$r.tmp" "$r"
+    sed -e "s/^write = .*/write = \"$mode\"/" -e "s/^flow = .*/flow = \"$flow\"/" -e "s/^pack = .*/pack = \"$pack\"/" "$r" >"$r.tmp" && mv "$r.tmp" "$r"
     if [ "$layout" = packages ]; then
       # 雛形の AGENTS.md が書く作品の置き場所を packages/ に合わせる
       sed -e 's|例 `mywork/`|例 `packages/mywork/`|' -e 's|--work <作品>|--work packages/<作品>|g' "$dir/AGENTS.md" >"$dir/AGENTS.md.tmp" && mv "$dir/AGENTS.md.tmp" "$dir/AGENTS.md"
@@ -289,6 +292,7 @@ noveler — write novels with AI agents (agent-noveler)
 
   noveler new [folder]         Create a manuscript repository (git init, harness, first work)
       --layout single|packages   single: works at the repo root / packages: works under packages/
+      --flow full|standard|lite  How many review steps each chapter goes through (default: standard)
   noveler add [work]           Add a work folder (syuki ledger, PDF config, manuscript/vol1/)
   noveler open [folder]        Open the works in the reading desk (shosai)
   noveler build [work] [vol]   Build a PDF (--epub for EPUB)

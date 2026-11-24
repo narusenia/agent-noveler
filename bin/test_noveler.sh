@@ -16,6 +16,7 @@ NOVELER_MODE=human NOVELER_WORK=first NOVELER_TITLE='試しの "題"' NOVELER_AU
 r=$tmp/novels
 [ -d "$r/.git" ] || fail "git init"
 grep -q '^write = "human"' "$r/.agents/roles.toml" || fail "mode write"
+grep -q '^flow = "standard"' "$r/.agents/roles.toml" || fail "default flow"
 grep -q '^pack = "light-novel"' "$r/.agents/roles.toml" || fail "style pack"
 [ -f "$r/pnpm-workspace.yaml" ] || fail "pnpm-workspace.yaml"
 for f in syuki.yml book.config.js vivliostyle.config.js package.json .gitignore plot.md; do
@@ -37,9 +38,10 @@ echo "ok: noveler new/add/doctor"
 
 # packages 形: 作品は packages/<作品>/
 rm -rf "$tmp/shelf"
-NOVELER_WORK=one "$noveler" new --layout packages "$tmp/shelf"
+NOVELER_WORK=one "$noveler" new --layout packages --flow lite "$tmp/shelf"
 r=$tmp/shelf
 grep -q '"packages/\*"' "$r/pnpm-workspace.yaml" || fail "packages workspace"
+grep -q '^flow = "lite"' "$r/.agents/roles.toml" || fail "--flow lite"
 grep -q '"name": "shelf"' "$r/package.json" || fail "root package.json"
 grep -q '例 `packages/mywork/`' "$r/AGENTS.md" || fail "AGENTS.md work path"
 [ -f "$r/packages/one/book.config.js" ] || fail "packages/one"
@@ -54,8 +56,9 @@ echo "ok: noveler packages layout"
 
 # 文体パック general を選ぶ
 rm -rf "$tmp/plain"
-NOVELER_PACK=general NOVELER_WORK=g "$noveler" new "$tmp/plain"
+NOVELER_PACK=general NOVELER_FLOW=full NOVELER_WORK=g "$noveler" new "$tmp/plain"
 grep -q '^pack = "general"' "$tmp/plain/.agents/roles.toml" || fail "general pack"
+grep -q '^flow = "full"' "$tmp/plain/.agents/roles.toml" || fail "NOVELER_FLOW"
 [ "$(readlink "$tmp/plain/.agents/style")" = packs/general ] || fail "style link"
 [ -f "$tmp/plain/.agents/skills/general/scripts/check_style.py" ] || fail "general lint"
 echo "ok: noveler general pack"

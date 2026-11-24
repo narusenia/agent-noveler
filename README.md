@@ -41,6 +41,7 @@ Write each chapter in `<work>/manuscript/<volume>/<chapter>.kym.txt`.
 | --- | --- |
 | `noveler new [folder]` | Create a manuscript repository (git init, harness, first work). Asks for a style pack and a writing mode: `ai` (AI writes, you review) or `human` (you write, AI reviews) |
 | `noveler new --layout single\|packages` | Choose where works live: `single` (default, works at the repo root) or `packages` (works under `packages/<work>/`, for several works in one repo) |
+| `noveler new --flow full\|standard\|lite` | Choose how many review steps each chapter goes through: `standard` (default, one combined review), `full` (every step), or `lite` (fewest steps and tokens). Saved as `[mode] flow` in `.agents/roles.toml` |
 | `noveler add [work]` | Add a work folder (syuki ledger, PDF config, `manuscript/vol1/`). Asks for the title and author |
 | `noveler open [folder]` | Open the works in the reading desk (shosai). Works under `packages/` are found too |
 | `noveler build [work] [vol]` | Build a PDF (`--epub` for EPUB) |

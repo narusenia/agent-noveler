@@ -21,6 +21,11 @@ runner = "claude"
 #             proofreaderの直しは、shosaiの指摘ファイル（review/<巻>.json）に赤として積み、作者が一つずつ採るか決める
 [mode]
 write = "ai"
+# 一章を書くときに回す段（AGENTS.mdの「一章を書くときの流れ」）。
+#   "full"     — 全部の段を回す
+#   "standard" — 見直しを critic 一回にまとめ、章ごとの初見読みは回さない（既定）
+#   "lite"     — planner・editor（カード）・writer・critic だけ。ほかは syuki lint と syuki check で代える
+flow = "standard"
 
 # 使う文体パック（.agents/packs/<名前>/）。scripts/link-pack.shで同じパックをつないでおく。
 # first-readは、ここに書いたパックの初見読者の人物像を使う。空にすると汎用の人物像になる。

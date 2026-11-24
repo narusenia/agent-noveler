@@ -71,9 +71,27 @@
 
 小さな直し（数行の加筆、言い回しの変更）なら、1〜5 を飛ばして 6 から始め、7 は軽い読みだけでよい。
 
+#### 段（`[mode] flow`）
+
+上の 1〜10 は `full`。どの段で回すかは `roles.toml` の `[mode] flow` で決める（引き方は `python3 .agents/scripts/role.py --setting mode.flow --work <作品>`）。既定は `standard`。
+
+| 段 | `full` | `standard`（既定） | `lite` |
+| --- | --- | --- | --- |
+| 1〜3 planner・editor（カード） | 全部 | 全部 | 1・2 だけ（editor の指摘は writer に渡す） |
+| 5 auditor | 回す | 作者が問いに答えたときだけ | 回さない |
+| 6 writer | spar あり | spar あり | spar なし |
+| 7 見直し | 軽い読み・critic・パックの見る役・editor（条件つき） | critic を一回 | critic を一回（読むのは章の本文と `syuki brief 章:場面` だけ） |
+| 9 proofreader | 回す | 回す | 回さない |
+| 初見読み | 章ごとと巻 | 巻のときだけ | 回さない |
+
+- `standard` の 7: critic の依頼文に「文体パックの見る役（`pack.toml` の `[provides] agents`。light-novel 以外では無いこともある）の観点も見る」と書き、見直しを一回にまとめる。
+- `lite` で省いた段（パックの見る役、spar、auditor、初見読み、proofreader）は、`syuki lint` と `syuki check` で代える。
+- 段にかかわらず、`syuki check` の違反が 0 になり、writer が `syuki lint` の指摘を見終えるまでは、LLM の見る役を回さない。
+- 段にかかわらず、見る役は plot 全体や前の章を丸ごと読まない。先に `syuki brief 章:場面` と対象の章を読み、要るときだけ `syuki search` などで広げる。
+
 ### 添削モードの流れ（`write = "human"`）
 
-作者が書いた章を、見る役が読んで返す。本文は作者だけが書き換える。
+作者が書いた章を、見る役が読んで返す。本文は作者だけが書き換える。`standard` と `lite` では 1 の初見読みを省き、`lite` では 2 の editor と 4 の proofreader も省く。
 
 1. **first-read の軽い読み**、**critic（章）**、文体パックの見る役 — 同時に回す。本文の一か所に結び付く指摘は、報告ファイルとは別に `.agents/scripts/review_add.py` で shosai の指摘ファイル（`review/<巻>.json`）にも積む。
 2. **editor（本文）** — 上の 7 と同じ条件の章で回す。
