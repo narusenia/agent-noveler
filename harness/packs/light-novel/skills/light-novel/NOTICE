@@ -1,0 +1,32 @@
+light-novel skill
+
+このスキルの規則と語句の一覧は、次の資料を参考にして作った。語句は日本語に訳して作り直したもので、各リポジトリの原文やリストは写していない。論文と Web の資料は references/sources.md に書いた。
+
+- coji/natural-japanese
+  https://github.com/coji/natural-japanese
+  MIT License, Copyright (c) 2026 coji
+  参考: 呼び替えの禁止、語の組み合わせのずれ、英語に訳し戻す確かめ方、先回りの否定、「AではなくB」の分け方
+
+- sam-paech/antislop-sampler
+  https://github.com/sam-paech/antislop-sampler
+  Apache License 2.0
+  参考: 英語の物語で出すぎる語句の一覧（日本語に訳して作り直した）
+
+- sam-paech/slop-forensics
+  https://github.com/sam-paech/slop-forensics
+  MIT License
+  参考: 出すぎる語の組を数えて一覧を作る手法
+
+- hardikpandya/stop-slop
+  https://github.com/hardikpandya/stop-slop
+  MIT License
+  参考: 細切れで深さを装う書き方、段落末の決め台詞、言いよどみがないこと
+
+- iKora128/stop-ai-slop-jp
+  https://github.com/iKora128/stop-ai-slop-jp
+  MIT License
+  参考: stop-slop の日本語版の観点
+
+- EQ-bench/creative-writing-bench
+  https://github.com/EQ-bench/creative-writing-bench
+  ライセンスの表記なし。観点（積み上げのない変化、話に合わない明るい結末、美文）だけを参考にし、文面は使っていない。

@@ -1,0 +1,66 @@
+# 役ごとに、誰（どの担い手）に頼むかを決める設定。ここを書き換えれば、役の担い手が変わる。
+# 作品ごとに変えたいときは、作品のフォルダにroles.tomlを同じ形で置く。書いた項目だけが、こちらより優先される。
+# 引き方: python3 .agents/scripts/role.py <役>（一覧は--list）。頼み方: .agents/scripts/ask.sh（AGENTS.mdの「役の頼み方」）。
+#
+# 担い手（runner）は次の四つ。
+#   claude    — メインの会話（Claude Code）のサブエージェント。Agentツールで.agents/agents/<役>.mdを呼ぶ
+#   agy       — herdrの隣のペインで対話で動くagy（Antigravity）。スキルherdr-agyのhand.shが送る。herdrの中でだけ動く
+#   agy-print — agy -p（printモード）で一度ずつ答えさせる。herdrが無くても動く。下の[agy] allow_print = trueのときだけ使える
+#   opencode  — OpenCode（API課金）。.agents/scripts/runners/opencode.shが送る
+# model: 担い手ごとのモデル名。書かなければ担い手の既定のモデル。
+# fallback: 担い手が使えないとき（agyの利用枠切れなど）の代わり。ask.sh --fallbackで使う。
+
+[defaults]
+runner = "claude"
+
+# 本文を誰が書くか。
+#   "ai"    — writerとplannerが本文とカードを書き、見る役が直しを返す（既定）
+#   "human" — 作者が本文を書く。writerとplannerは使わず、見る役は本文を書き換えない。
+#             proofreaderの直しは、shosaiの指摘ファイル（review/<巻>.json）に赤として積み、作者が一つずつ採るか決める
+[mode]
+write = "ai"
+
+# 使う文体パック（.agents/packs/<名前>/）。scripts/link-pack.shで同じパックをつないでおく。
+# first-readは、ここに書いたパックの初見読者の人物像を使う。空にすると汎用の人物像になる。
+[style]
+pack = "light-novel"
+
+# agy -p（printモード）を使ってよいか。agy -pを他のエージェントやスクリプトから呼ぶと、利用規約に触れることがある。
+# 既定はfalseで、どの道具もagy -pを呼ばない。規約を自分で確かめたうえで、自分の責任でtrueにする。
+# trueにすると、担い手agy-print、sparの相手のagy、herdrの外でのfirst-readの軽い読みが使える。
+[agy]
+allow_print = false
+
+# 役でない手伝い。sparは書きながらの壁打ち、first-readは初見読み。
+[helpers.spar]
+runner = "claude"
+model = "sonnet"
+
+[helpers.first-read-light]
+runner = "claude"
+
+[helpers.first-read-heavy]
+runner = "claude"
+
+# ここから下は、Claude Code以外の担い手を使うときの例。使うなら#を外して書き換える。
+#
+# 書く役（writer・planner）を別のモデルに任せ、見る役（criticなど）をClaudeに残すと、書く側と見る側の癖が重なりにくい。
+# herdrのペインのagyに書かせ、使えないときはOpenCodeに回す例:
+#
+# [roles.writer]
+# runner = "agy"
+# fallback = { runner = "opencode", model = "google/gemini-4-hydrogen" }
+#
+# [roles.planner]
+# runner = "agy"
+# fallback = { runner = "opencode", model = "google/gemini-4-hydrogen" }
+#
+# 初見読みの相手を変える例（軽い読みはherdrのagy、重い読みはOpenCode）:
+#
+# [helpers.first-read-light]
+# runner = "agy"
+# model = "gemini-3.8-flash-medium"
+#
+# [helpers.first-read-heavy]
+# runner = "opencode"
+# model = "google/gemini-4-carbon"

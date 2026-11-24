@@ -1,0 +1,18 @@
+# 作品の文体の設定。check_style.pyが本文のフォルダから上へたどってstyle/profile.tomlを探す。
+rhythm = "緩急"            # 緩急/ 軽快/ 描写/ 饒舌
+balance = "笑い 6 / シリアス 4"
+characters = "characters.md"  # 口癖を読む人物ファイル（本文フォルダからの相対ではなく、style/ の親からの相対）
+catchphrase_limit = 2      # 口癖は一章にこの回数まで
+
+[catchphrases]             # 人物ファイルの「- 口癖:」に加えて数える口癖
+# 名前 = ["口癖1", "口癖2"]
+
+[comma_exempt]             # 台詞の読点の型を許す人物の語（区切って話す口調など）
+# words = ["それは、困る"]
+# speakers = ["椎名"]       # 区切って話すのが型の人物。話者が分かる台詞では読点を数えない
+
+[pov]                      # 人称の揺れの検査。modeを空けると見ない
+# mode = "三人称限定"      # 三人称限定 / 一人称
+# names = ["湊"]       # 視点人物の地の文での呼び名
+# first_person = "俺"      # 心の声の一人称
+# exclude = ["prologue", "interlude"]  # 視点が違う章のファイル名の一部

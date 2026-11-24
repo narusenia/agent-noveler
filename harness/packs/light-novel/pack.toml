@@ -1,0 +1,22 @@
+# 文体パックlight-novel の中身の一覧。ハーネスの核（syuki・shosai・役の仕組み・ジャンルを問わない役の手順）とは分けて置く。
+# scripts/link-pack.sh light-novelで、下のskills・rules・agentsをハーネスへつなぐ。
+
+name = "light-novel"
+title = "ライトノベル・Web 小説"
+description = "会話と地の文の温度、ツッコミの声、ヒロインの見せ場、AI 文の癖をライトノベルの読者の目で見る文体パック"
+
+[provides]
+skills = ["light-novel"]            # 書き方・直し方・lint（check_style.pyほか）
+rules = ["prose-tools.md"]          # 本文にlint と校正を当てるときの優先順位
+agents = ["slop"]                   # AI文の癖を、調査の七つの層ごとに見る役
+first_read_prompt = "first-read/prompt.md"   # 初見読者の人物像（ライトノベルをよく読む十代後半〜二十代）
+research = "docs/research.md"       # パックの根拠にした論文と資料の調査
+
+# 作品ごとに変えられる所。どれも作品のフォルダの中に置き、パックの中は書き換えない。
+# 書き方の詳細はskills/light-novel/SKILL.mdとreferences/ の各ファイル。
+[customize]
+profile = "style/profile.toml"                 # リズムの型、笑いとシリアスの配分、口癖の上限、台詞の読点の例外、視点、声なしの閾値
+keep = "style/keep.md"                          # 作者が気に入った文。lintと校正で変えない
+dialogue_examples = "style/dialogue-examples.md"  # 作品の本文から作った会話の悪い例と良い例
+samples = "style/samples/"                      # 語りの声の見本。sparと校正の温度合わせが読む
+characters = "characters.md"                    # 口癖・口調サンプル。lintと盲検が読む（profile.tomlのcharactersで場所を変えられる）
