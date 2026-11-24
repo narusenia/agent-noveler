@@ -1,0 +1,5 @@
+.vivliostyle*/
+# manuscript/<巻>/*.kym.txt から `pnpm convert` が作る
+manuscript/**/*.kym.md
+*.pdf
+*.epub

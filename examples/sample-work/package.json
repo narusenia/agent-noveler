@@ -1,1 +1,15 @@
-{ "description": "灯台の鍵（見本）", "private": true, "type": "module" }
+{
+  "name": "sample-work",
+  "description": "灯台の鍵（見本）",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "convert": "kakuyomu-vfm --class vrtl --lang ja --jisage all 'manuscript/*/*.kym.txt'",
+    "build": "pnpm convert && vivliostyle build -o sample-work_${VOL:-vol1}.pdf",
+    "build:epub": "pnpm convert && vivliostyle build -o sample-work_${VOL:-vol1}.epub"
+  },
+  "dependencies": {
+    "@narusenia/kakuyomu-vfm": "0.1.2",
+    "@vivliostyle/cli": "11.0.0"
+  }
+}

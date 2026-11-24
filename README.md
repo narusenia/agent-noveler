@@ -31,6 +31,19 @@ SHOSAI_WORKS=~/novels pnpm review
 
 作品のフォルダの形は `examples/sample-work/` と同じです。`manuscript/<巻>/<章>.kym.txt` に本文を置き、syuki を使うなら `syuki.yml` と `ledger/` を置きます。雛形は `syuki init <作品のフォルダ>` で作れます。
 
+## PDF・EPUB に書き出す
+
+本の形への書き出しは [Vivliostyle](https://vivliostyle.org/ja/) で行います。書斎の組版の見た目と同じ `book.config.js` を読むので、画面で確かめた組みがそのまま PDF になります。
+
+```sh
+cd examples/sample-work
+pnpm build                  # sample-work_vol1.pdf
+pnpm build:epub             # sample-work_vol1.epub
+VOL=vol2 pnpm build         # 巻を選ぶ（既定は vol1）
+```
+
+`pnpm build` は、まず [kakuyomu-vfm](https://www.npmjs.com/package/@narusenia/kakuyomu-vfm) で `.kym.txt` を Markdown（`.kym.md`）に変え、次に `vivliostyle build` で組みます。自分の作品で使うときは、見本の `package.json` の `scripts` と依存、`vivliostyle.config.js` を作品のフォルダに写してください。
+
 ## 入れ方
 
 | 道具 | 包みの名前 | 入れ方 |
