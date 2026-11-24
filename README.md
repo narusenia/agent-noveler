@@ -8,61 +8,61 @@ AI と一緒に日本語の小説を書くための道具一式です。原稿�
 
 | フォルダ | 中身 | ライセンス |
 | --- | --- | --- |
-| `packages/syuki/` | 台帳 CLI。人物が何を知っているか、持ち物がどこにあるかなどを YAML の台帳に記録し、場面ごとに引き出したり、本文と照らして矛盾を見つけたりする | MIT |
-| `packages/shosai/` | 書斎ビューア。縦書きで原稿を読み、赤を入れ、組版の見た目で確かめる。syuki の台帳も横に出せる | AGPL-3.0 |
+| `packages/syuki/` | 台帳 CLI。人物が何を知っているか、持ち物がどこにあるかなどを YAML の台帳に記録し、場面ごとの引き出しや、本文と照らした矛盾の検出に使う | MIT |
+| `packages/shosai/` | 書斎ビューア。縦書きでの通読、赤入れ、組版の見た目の確認。syuki の台帳も横に表示 | AGPL-3.0 |
 | `harness/` | エージェントの道具。役（書く、校正する、批評するなど）の手順書、決まり、スキル、役ごとの担い手を決める仕組み、文体パック | MIT |
-| `examples/sample-work/` | 見本作品「灯台の鍵」（序章と第一章）。syuki と shosai がそのまま動く | MIT |
+| `examples/sample-work/` | 見本作品「灯台の鍵」（序章と第一章）。syuki と shosai をそのまま試せる | MIT |
 
-## Install
+## 入れ方
 
-You need [git](https://git-scm.com/downloads), [uv](https://docs.astral.sh/uv/) and [Node.js](https://nodejs.org/) 22 or later. This line installs the `noveler` command and syuki:
+先に [git](https://git-scm.com/downloads)、[uv](https://docs.astral.sh/uv/)、[Node.js](https://nodejs.org/) 22 以上を入れておきます。次の一行で、`noveler` コマンドと syuki が入ります。
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/narusenia/agent-noveler/main/install.sh | bash
 ```
 
-- The installer asks which tool manager to use for Node.js, pnpm, uv and gum: `mise` or `plain`. `plain` uses the tools you have already installed.
-- To use [mise](https://mise.jdx.dev) without being asked, end the line with `| bash -s -- --tools mise`. Install mise itself first.
-- The files go into `~/.local/share/agent-noveler`, and the `noveler` command into `~/.local/bin`. Add `~/.local/bin` to your PATH.
-- [gum](https://github.com/charmbracelet/gum), used for the prompts, is installed into the noveler folder automatically, not system-wide.
+- 入れる途中で、Node.js・pnpm・uv・gum を何で管理するかを聞かれます。`mise` か `plain` を選びます。`plain` は、すでに入っているものをそのまま使います。
+- 聞かれずに [mise](https://mise.jdx.dev) を使うときは、行の末尾を `| bash -s -- --tools mise` にします。mise は先に入れておいてください。
+- 本体は `~/.local/share/agent-noveler` に、`noveler` コマンドは `~/.local/bin` に入ります。`~/.local/bin` を PATH に足してください。
+- 画面の表示に使う [gum](https://github.com/charmbracelet/gum) は、noveler のフォルダに自動で入ります。システムには入りません。
 
-## Usage
+## 使い方
 
 ```sh
-noveler new ~/novels      # create a manuscript repository and its first work
+noveler new ~/novels      # 原稿のリポジトリと、最初の作品を作る
 cd ~/novels
-noveler open              # open the works in shosai
-noveler build             # build a PDF
+noveler open              # 書斎で開く
+noveler build             # PDF に書き出す
 ```
 
-Write each chapter in `<work>/manuscript/<volume>/<chapter>.kym.txt`.
+本文は `<作品>/manuscript/<巻>/<章>.kym.txt` に書きます。noveler の画面の表示は英語です。
 
-| Command | Description |
+| コマンド | すること |
 | --- | --- |
-| `noveler new [folder]` | Create a manuscript repository (git init, harness, first work). Asks for a style pack and a writing mode: `ai` (AI writes, you review) or `human` (you write, AI reviews) |
-| `noveler new --layout single\|packages` | Choose where works live: `single` (default, works at the repo root) or `packages` (works under `packages/<work>/`, for several works in one repo) |
-| `noveler new --flow full\|standard\|lite` | Choose how many review steps each chapter goes through: `standard` (default, one combined review), `full` (every step), or `lite` (fewest steps and tokens). Saved as `[mode] flow` in `.agents/roles.toml` |
-| `noveler add [work]` | Add a work folder (syuki ledger, PDF config, `manuscript/vol1/`). Asks for the title and author |
-| `noveler open [folder]` | Open the works in the reading desk (shosai). Works under `packages/` are found too |
-| `noveler build [work] [vol]` | Build a PDF (`--epub` for EPUB) |
-| `noveler update` | Update noveler and syuki, then reinstall `.agents/` (asks first) |
-| `noveler doctor` | Show installed tools and versions, and syuki check results |
-| `noveler help` | Show the command list |
+| `noveler new [フォルダ]` | 原稿のリポジトリを作ります（git init、ハーネス、最初の作品）。文体パックと書き方を聞かれます。書き方は `ai`（AI が書き、自分が見る）か `human`（自分が書き、AI が見る） |
+| `noveler new --layout single\|packages` | 作品の置き場所を選びます。`single`（既定。リポジトリの直下）か `packages`（`packages/<作品>/`。一つのリポジトリで複数の作品を書くとき） |
+| `noveler new --flow full\|standard\|lite` | 一章ごとの見直しの段の数を選びます。`standard`（既定。見直しを一回にまとめる）、`full`（全部の段）、`lite`（段もトークンも最少）。`.agents/roles.toml` の `[mode] flow` に残ります |
+| `noveler add [作品]` | 作品のフォルダを足します（syuki の台帳、PDF の設定、`manuscript/vol1/`）。題と作者名を聞かれます |
+| `noveler open [フォルダ]` | 作品を書斎（shosai）で開きます。`packages/` の下の作品も見つけます |
+| `noveler build [作品] [巻]` | PDF に書き出します（`--epub` で EPUB） |
+| `noveler update` | noveler と syuki を最新にし、`.agents/` を入れ直します（入れ直す前に確認します） |
+| `noveler doctor` | 入っている道具と版、`syuki check` の結果を表示します |
+| `noveler help` | コマンドの一覧を表示します |
 
-`-y` (`--yes`) uses the defaults without asking.
+`-y`（`--yes`）を付けると、聞かずに既定値で進みます。
 
-### Install the components one by one
+### 一つずつ入れる
 
-| Component | Command |
+| 道具 | 入れ方 |
 | --- | --- |
-| shosai | `npx @narusenia/shosai ~/novels` (pass the folder that holds your works) |
-| syuki | `uv tool install "syuki[ja] @ git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki"` (to try it without installing: `uvx --from "git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki" syuki check`) |
+| shosai | `npx @narusenia/shosai ~/novels`（作品のフォルダが並んだフォルダを渡す） |
+| syuki | `uv tool install "syuki[ja] @ git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki"`（入れずに試すなら `uvx --from "git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki" syuki check`） |
 
-shosai started with npx calls `syuki` on your PATH to show the ledger. Without syuki you can still read, mark up and preview the typesetting.
+npx で起動した書斎は、PATH の `syuki` を呼んで台帳を表示します。syuki が無くても、本文を読む、赤を入れる、組版を見る、はそのまま使えます。
 
 ## ハーネスの効き目（before / after）
 
-見本作品の第二章を、同じモデル（Gemini）に二通りに書かせた。before は資料とあらすじを渡して一度で書かせたもの、after はハーネスの流れ（カード → 編集の目 → 執筆と壁打ち → 批評と癖の検査 → 直し）を通したもの。どちらが after かを伏せて、初見の読者二人（Claude）に読ませた。
+見本作品の第二章を、同じモデル（Gemini）に二通りに書かせました。before は、資料とあらすじを渡して一度で書かせたものです。after は、ハーネスの流れ（カード → 編集の目 → 執筆と壁打ち → 批評と癖の検査 → 直し）を通したものです。どちらが after かを伏せて、初見の読者二人（Claude）に読ませました。
 
 | | before | after |
 | --- | --- | --- |
@@ -72,17 +72,17 @@ shosai started with npx calls `syuki` on your PATH to show the ledger. Without s
 | 文長のばらつき（目安 0.45 以上） | 0.37 | 0.50 |
 | 語り手の声がある地の文（目安 30% 以上） | 9% | 30% 以上 |
 
-同じ出来事を書いた所を、二つ並べる。
+同じ出来事を書いた所を、二つ並べます。
 
 **1. 主人公が、十年だれにも信じてもらえなかった「白い船を見た」話を打ち明ける**
 
-before — 気持ちを地の文が説明している。
+before — 気持ちを地の文で説明しています。
 
 > 「はい。灯台の下から、白い船を」
 >
 > 　言った瞬間、また笑われるかもしれないと思った。小学生のころに味わった居心地の悪さがよみがえる。けれど、おばあちゃんは笑わなかった。
 
-after — 説明せず、時間と体の感覚で見せている。
+after — 説明せず、時間と体の感覚で見せています。
 
 > 「……拾って三日あとの霧の朝に、白い船を見ました。灯台の下を通っていくのを」
 >
@@ -90,15 +90,15 @@ after — 説明せず、時間と体の感覚で見せている。
 
 **2. 章の最後の一文**
 
-before — 「何かが動く気がした」という決まった言い方で閉じている。
+before — 「何かが動く気がした」という決まった言い方で閉じています。
 
 > 　少しだけ照れたように目をそらすハルを見て、俺はポケットの中の鍵をもう一度握り直した。三日後、あの霧の中で、今度こそ何かが動く気がした。
 
-after — 物の手触りと、すぐには答えられない迷いで閉じている。
+after — 物の手触りと、すぐには答えられない迷いで閉じています。
 
 > 　三日後は平日だ。また朝から学校を抜けて岬へ向かうのか。背中の鞄の底で、白紙のまま折った進路の紙がかさりと鳴った気がして、俺はすぐには返事ができなかった。
 
-一章、一回だけの比較で、読者と批評役は Claude、手間も after のほうがずっと多い。条件、全文、各段の報告、読者の答えは [docs/showcase/](docs/showcase/README.md) に置いている。
+一章を一回比べただけで、読者と批評役は Claude です。手間も after のほうがずっと多くかかっています。条件、全文、各段の報告、読者の答えは [docs/showcase/](docs/showcase/README.md) に置いています。
 
 ## 見本で試す
 
@@ -140,7 +140,7 @@ VOL=vol2 pnpm build         # 巻を選ぶ（既定は vol1）
 `noveler new` で作った原稿のリポジトリには入っています。noveler を使わずに入れるときは、このリポジトリから次のように実行します。
 
 ```sh
-bash harness/scripts/install.sh ~/novels [文体パック]   # 文体パックを省くと light-novel
+bash harness/scripts/install.sh ~/novels [文体パック]   # 文体パックを省くと general
 ```
 
 `~/novels/.agents/` にハーネスが写り、各ツールが読む場所からリンクが張られます。`AGENTS.md` が無ければ雛形も置かれるので、【】の所を書き換えてください。
@@ -163,7 +163,7 @@ AI に書かせず、自分で書いた本文を見てもらうだけにもで�
 
 ### 文体パック
 
-役の手順書（核）はジャンルを問わない言い方で書いてあり、ジャンルに固有の書き方と見方は文体パックに分けてあります。今あるのは **light-novel** パックと、核だけで動くことを示す最小の **general** パックです。作り方は `harness/packs/README.md`。
+役の手順書（核）はジャンルを問わない言い方で書いてあり、ジャンルに固有の書き方と見方は文体パックに分けてあります。今あるのは、既定の **general** パック（ジャンルを問わない最小のもの）と、**light-novel** パック（ライトノベル・Web 小説向け）です。作り方は `harness/packs/README.md` にあります。
 
 ```
 harness/packs/light-novel/
@@ -203,5 +203,5 @@ light-novel スキルが参考にしたほかのリポジトリとそのライ�
 
 パッケージごとに違います。詳しくは各フォルダの `LICENSE` を見てください。
 
-- `packages/shosai/` は AGPL-3.0。組版に使っている `@vivliostyle/core` が AGPL-3.0 だからです。
-- それ以外（`packages/syuki/`、`harness/`、`examples/`）は MIT。
+- `packages/shosai/` は AGPL-3.0 です。組版に使っている `@vivliostyle/core` が AGPL-3.0 だからです。
+- それ以外（`packages/syuki/`、`harness/`、`examples/`）は MIT です。
