@@ -32,7 +32,7 @@ def locate(lines: list[str], quote: str, nth: int) -> tuple[int, str, str]:
                 return i + 1, line[max(0, s - CTX):s], line[e:e + CTX]
             n += 1
             s = line.find(quote, s + 1)
-    raise SystemExit(f"本文に見つからない: {quote}")
+    raise SystemExit(f"not found in the manuscript: {quote}")
 
 
 def add(work: Path, file: str, quote: str, kind: str, after: str | None, body: str, nth: int = 0) -> dict:
@@ -56,18 +56,18 @@ def add(work: Path, file: str, quote: str, kind: str, after: str | None, body: s
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("work", type=Path)
-    ap.add_argument("file", help="manuscript/ からのパス（例 vol1/01.kym.txt）")
+    ap.add_argument("file", help="path under manuscript/ (e.g. vol1/01.kym.txt)")
     ap.add_argument("--quote", required=True)
-    ap.add_argument("--after", help="直した字。付けると作者の赤と同じ replace になる")
+    ap.add_argument("--after", help="the fixed text; makes a replace entry like the author's edits")
     ap.add_argument("--kind", choices=["replace", "suggest", "comment"])
     ap.add_argument("--body", default="")
     ap.add_argument("--nth", type=int, default=0)
     a = ap.parse_args()
     kind = a.kind or ("replace" if a.after is not None else "suggest")
     if kind == "replace" and a.after is None:
-        ap.error("replace には --after が要る")
+        ap.error("replace needs --after")
     if kind != "replace" and not a.body:
-        ap.error(f"{kind} には --body が要る")
+        ap.error(f"{kind} needs --body")
     e = add(a.work, a.file, a.quote, kind, a.after if kind == "replace" else None, a.body, a.nth)
     print(e["id"])
     return 0

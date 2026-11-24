@@ -84,14 +84,14 @@ def main():
         print("ok")
         return 0
     if len(sys.argv) < 3:
-        sys.exit("使い方: check_quotes.py 報告.md 本文...")
+        sys.exit("usage: check_quotes.py REPORT.md MANUSCRIPT...")
     report = Path(sys.argv[1]).read_text(encoding="utf-8")
     book = "\n".join(Path(p).read_text(encoding="utf-8") for p in sys.argv[2:])
     results = check(report, book)
     bad = [r for r in results if r[2] != "ok"]
     print("\n## 引用の照合（自動）\n")
-    print(f"「」『』の引用 {len(results)} 件のうち、本文にそのまま無いもの {len(bad)} 件。"
-          "「見つからない」は作り話の疑いがある。根拠にする前に本文で確かめる。\n")
+    print(f"「」『』の引用 {len(results)} 件のうち、本文にそのまま無いものが {len(bad)} 件あります。"
+          "「見つからない」は作り話の疑いがあります。根拠にする前に本文で確かめてください。\n")
     for lineno, q, verdict in sorted(bad, key=lambda r: (r[2] != "missing", r[0])):
         label = "見つからない" if verdict == "missing" else "言い換え（近い文はある）"
         short = q if len(q) <= 80 else q[:80] + "…"

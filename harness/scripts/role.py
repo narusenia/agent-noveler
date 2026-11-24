@@ -63,11 +63,11 @@ def main() -> int:
         names = sorted({p.stem for p in agents.glob("*.md")} | set(cfg.get("roles", {}))) + sorted(cfg.get("helpers", {}))
         for n in names:
             e = resolve(cfg, n)
-            fb = f"  控え: {field(e, 'fallback.runner')} {field(e, 'fallback.model')}".rstrip() if "fallback" in e else ""
+            fb = f"  fallback: {field(e, 'fallback.runner')} {field(e, 'fallback.model')}".rstrip() if "fallback" in e else ""
             print(f"{n}\t{e.get('runner', '')} {e.get('model', '')}".rstrip() + fb)
         return 0
     if not a.name:
-        ap.error("役の名前か --list")
+        ap.error("give a role name or --list")
     print(field(resolve(cfg, a.name), a.field))
     return 0
 

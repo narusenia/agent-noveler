@@ -6,7 +6,7 @@
 #           herdrの中から呼ぶ（HERDR_ENV=1）。agy -p は使わない。
 set -euo pipefail
 
-[ $# -ge 3 ] || { echo "使い方: read.sh carbon|flash 出力ファイル 章ファイル..." >&2; exit 2; }
+[ $# -ge 3 ] || { echo "usage: read.sh carbon|flash OUTPUT_FILE CHAPTER_FILE..." >&2; exit 2; }
 route=$1; shift
 mkdir -p "$(dirname "$1")"
 out="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"; shift
@@ -30,7 +30,7 @@ case $route in
     if [ "${HERDR_ENV:-}" != 1 ]; then
       # herdrの外では、roles.tomlの[agy] allow_print = trueのときだけagy -p で読む
       [ "$(python3 "$here/../../scripts/role.py" --setting agy.allow_print)" = true ] ||
-        { echo "herdr の中で動いていない。herdr の中で起動し直すか、roles.toml の [agy] allow_print を true にする" >&2; exit 3; }
+        { echo "not running inside herdr. Restart inside herdr, or set [agy] allow_print = true in roles.toml" >&2; exit 3; }
       (cd "$work" && agy --sandbox --disable-slash-commands \
         --model "${FIRST_READ_FLASH_MODEL:-$(python3 "$here/../../scripts/role.py" first-read-light --field model)}" \
         -p "このフォルダの book.txt が本文です。$prompt") >"$out"
@@ -50,7 +50,7 @@ case $route in
     status() { herdr agent get "$name" | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["agent"]["agent_status"])'; }
     # 起動直後の確認（新しい作業フォルダの信頼など）で止まったら、作者がペインで答えて待ち受けに戻るまで待つ
     while [ "$(status)" = blocked ]; do
-      echo "agy が起動時の確認で止まっている（ペイン: ${name}）。作者が答えるのを待つ" >&2
+      echo "agy is waiting at a startup prompt (pane: ${name}). Waiting for the author to answer" >&2
       herdr agent wait "$name" --until idle --until done --until working --timeout "${FIRST_READ_TIMEOUT:-1800000}" >/dev/null
     done
     herdr agent wait "$name" --until idle --until done --timeout 120000 >/dev/null
@@ -59,15 +59,15 @@ case $route in
 ---
 報告はこのフォルダの report.md に書いて止まる。" --wait --timeout "${FIRST_READ_TIMEOUT:-1800000}" >/dev/null
     while [ ! -s "$work/report.md" ] && [ "$(herdr agent get "$name" | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["agent"]["agent_status"])')" = blocked ]; do
-      echo "agy が承認待ち（ペイン: ${name}）。作者が答えるのを待つ" >&2
+      echo "agy is waiting for approval (pane: ${name}). Waiting for the author to answer" >&2
       herdr agent wait "$name" --until working --timeout "${FIRST_READ_TIMEOUT:-1800000}" >/dev/null
       herdr agent wait "$name" --until idle --until done --until blocked --timeout "${FIRST_READ_TIMEOUT:-1800000}" >/dev/null
     done
     cp "$work/report.md" "$out" 2>/dev/null || herdr agent read "$name" --lines 200 >"$out"
     fi ;;
-  *) echo "経路は carbon か flash: $route" >&2; exit 2 ;;
+  *) echo "route must be carbon or flash: $route" >&2; exit 2 ;;
 esac
-[ -s "$out" ] || { echo "Gemini の返答が空だった: $out" >&2; exit 1; }
+[ -s "$out" ] || { echo "Gemini returned an empty reply: $out" >&2; exit 1; }
 # 報告の引用を本文と突き合わせ、本文に無い引用（作り話の疑い）を報告の末尾に足す
 python3 "$here/scripts/check_quotes.py" "$out" "$work/book.txt" | tee -a "$out" || true
 echo "$out"

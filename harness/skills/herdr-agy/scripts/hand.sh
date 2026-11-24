@@ -8,11 +8,11 @@
 # agy -p（裏で動かすprint モード）は使わない。対話のagy をherdr で動かす。
 set -euo pipefail
 
-[ $# -eq 3 ] || { echo "使い方: hand.sh <役割> <名前> <依頼のファイル|->" >&2; exit 2; }
-[ "${HERDR_ENV:-}" = 1 ] || { echo "herdr の中で動いていない。herdr の中で Claude Code を起動し直してから呼ぶ" >&2; exit 3; }
+[ $# -eq 3 ] || { echo "usage: hand.sh <role> <name> <request-file|->" >&2; exit 2; }
+[ "${HERDR_ENV:-}" = 1 ] || { echo "not running inside herdr. Restart Claude Code inside herdr, then call this" >&2; exit 3; }
 role=$1; name=$2; src=$3
 root=$(git rev-parse --show-toplevel)
-[ -f "$root/.agents/agents/$role.md" ] || { echo "役割がない: $role" >&2; exit 2; }
+[ -f "$root/.agents/agents/$role.md" ] || { echo "no such role: $role" >&2; exit 2; }
 report="$root/.hand/$name.md"; mkdir -p "$root/.hand"; rm -f "$report"
 task="$(cat "$src")
 
@@ -37,7 +37,7 @@ status() { herdr agent get "$name" | python3 -c 'import json,sys; print(json.loa
 until_stop() { herdr agent wait "$name" --until idle --until done --until blocked --timeout "${HAND_TIMEOUT:-3600000}" >/dev/null; }
 while :; do
   if [ "$(status)" = blocked ]; then
-    echo "agy が承認待ち（ペイン: ${name}）。作者が答えるのを待つ" >&2
+    echo "agy is waiting for approval (pane: ${name}). Waiting for the author to answer" >&2
     herdr agent wait "$name" --until working --timeout "${HAND_TIMEOUT:-3600000}" >/dev/null
     until_stop; continue
   fi
@@ -49,4 +49,4 @@ while :; do
 done
 
 if [ -f "$report" ]; then cat "$report"
-else echo "報告ファイルがない。ペインの末尾:" >&2; herdr agent read "$name" --lines 60; fi
+else echo "no report file. Tail of the pane:" >&2; herdr agent read "$name" --lines 60; fi

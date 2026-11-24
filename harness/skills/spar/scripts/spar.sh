@@ -8,7 +8,7 @@
 #   carbon        : opencodeのgoogle/gemini-4-carbon。
 set -euo pipefail
 
-[ $# -eq 3 ] || { echo "使い方: spar.sh start|ask <名前> <ファイル|->" >&2; exit 2; }
+[ $# -eq 3 ] || { echo "usage: spar.sh start|ask <name> <file|->" >&2; exit 2; }
 act=$1; name=$2; src=$3
 here=$(cd "$(dirname "$0")/.." && pwd)
 base="${TMPDIR:-/tmp}/spar"; run="$base/run"; mkdir -p "$run"
@@ -33,9 +33,9 @@ case $act in
     lens="$here/../../style/roles/spar.md"; role=$(cat "$here/role.md"); [ -f "$lens" ] && role+=$'\n\n'"$(cat "$lens")"
     msg="$role"$'\n\n---\n\n'"$ex$body" ;;
   ask)
-    [ -f "$state" ] || { echo "会話 $name がない。先に start する" >&2; exit 2; }
+    [ -f "$state" ] || { echo "no conversation $name. Run start first" >&2; exit 2; }
     route=$(sed -n 1p "$state"); id=$(sed -n 2p "$state"); msg=$body ;;
-  *) echo "start か ask: $act" >&2; exit 2 ;;
+  *) echo "must be start or ask: $act" >&2; exit 2 ;;
 esac
 
 # 作品のフォルダの外で動かし、相手が設定資料を勝手に読まないようにする
@@ -49,7 +49,7 @@ case $route in
   agy)
     # roles.tomlの[agy] allow_print = trueのときだけ（agy -p を他のエージェントから呼ぶと規約に触れることがある）
     [ "$(python3 "$here/../../scripts/role.py" --setting agy.allow_print)" = true ] ||
-      { echo "spar の agy 経路は roles.toml の [agy] allow_print = true のときだけ使える" >&2; exit 5; }
+      { echo "the agy route of spar is allowed only when [agy] allow_print = true in roles.toml" >&2; exit 5; }
     conv=(); [ -n "$id" ] && conv=(--conversation "$id")
     out=$(agy --sandbox --disable-slash-commands --model "${SPAR_MODEL:-gemini-3.8-flash-medium}" \
       ${conv[@]+"${conv[@]}"} --output-format json -p "$msg")
@@ -57,6 +57,6 @@ case $route in
     printf '%s' "$out" | python3 -c 'import json,sys; print(json.load(sys.stdin)["response"].rstrip())' ;;
   carbon)
     opencode run --session "$id" -m "${SPAR_MODEL:-google/gemini-4-carbon}" "$msg" 2>/dev/null ;;
-  *) echo "経路は claude・carbon・agy（agy は allow_print = true のときだけ）: ${route}" >&2; exit 2 ;;
+  *) echo "route must be claude, carbon or agy (agy only with allow_print = true): ${route}" >&2; exit 2 ;;
 esac
 printf '%s\n%s\n' "$route" "$id" >"$state"

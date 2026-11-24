@@ -14,22 +14,22 @@ while [ $# -gt 0 ]; do
     *) break ;;
   esac
 done
-[ $# -eq 3 ] || { echo "使い方: ask.sh [--work 作品] [--fallback] <役> <名前> <依頼のファイル|->" >&2; exit 2; }
+[ $# -eq 3 ] || { echo "usage: ask.sh [--work WORK] [--fallback] <role> <name> <request-file|->" >&2; exit 2; }
 role=$1; name=$2; src=$3
 get() { python3 "$here/role.py" "$role" ${work:+--work "$work"} --field "$fb$1"; }
 runner=$(get runner); model=$(get model)
-[ -n "$runner" ] || { echo "${role} に fallback が無い（roles.toml）" >&2; exit 2; }
+[ -n "$runner" ] || { echo "${role} has no fallback (roles.toml)" >&2; exit 2; }
 # 依頼が標準入力なら、実行器に渡すためにファイルへ落とす
 if [ "$src" = - ]; then tmp=$(mktemp); trap 'rm -f "$tmp"' EXIT; cat >"$tmp"; src=$tmp; fi
 
 case $runner in
   claude)
-    echo "${role} の担い手は claude（サブエージェント）。メインの会話から Agent ツール（subagent_type: ${role}${model:+、model: ${model}}）で頼む" >&2; exit 4 ;;
+    echo "${role} runs on claude (subagent). Ask from the main conversation with the Agent tool (subagent_type: ${role}${model:+, model: ${model}})" >&2; exit 4 ;;
   agy)
     HAND_MODEL=$model bash "$here/../skills/herdr-agy/scripts/hand.sh" "$role" "$name" "$src" ;;
   agy-print)
     bash "$here/runners/agy-print.sh" "$role" "$name" "$src" "$model" "$work" ;;
   opencode)
     bash "$here/runners/opencode.sh" "$role" "$name" "$src" ${model:+"$model"} ;;
-  *) echo "知らない担い手: ${runner}（claude・agy・agy-print・opencode）" >&2; exit 2 ;;
+  *) echo "unknown runner: ${runner} (claude, agy, agy-print, opencode)" >&2; exit 2 ;;
 esac

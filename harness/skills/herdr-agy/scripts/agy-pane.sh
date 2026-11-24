@@ -7,7 +7,7 @@
 # 使い方: agy-pane.sh <cwd>。AGY_PANE_NEW=1 なら空のシェルを使い回さず必ず割る（cwd が違うときに使う）
 set -euo pipefail
 cwd=${1:?cwd}
-ws=${HERDR_WORKSPACE_ID:?herdr の中で呼ぶ}
+ws=${HERDR_WORKSPACE_ID:?call this inside herdr}
 
 tab=$(herdr tab list | python3 -c '
 import json,sys

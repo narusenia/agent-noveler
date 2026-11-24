@@ -7,7 +7,7 @@
 # 切り替えて「続きから」を送る（OpenRouterの額が別にかかる）。そこでも止まったら一分待って送り直す（OPENCODE_RETRIES回まで）。
 # 終わるまで待ち、出力の末尾と今日の額を表示する。
 set -euo pipefail
-agent=${1:?役}; name=${2:?セッション名}; prompt=$(cd "$(dirname "${3:?依頼文のファイル}")" && pwd)/$(basename "$3")
+agent=${1:?role}; name=${2:?session name}; prompt=$(cd "$(dirname "${3:?request file}")" && pwd)/$(basename "$3")
 root=$(git rev-parse --show-toplevel)
 model=${4:-google/gemini-4-hydrogen}
 fallback=${OPENCODE_FALLBACK_MODEL:-openrouter/$model}
@@ -44,11 +44,11 @@ run_once "$prompt"
 for _ in $(seq "${OPENCODE_RETRIES:-5}"); do
   grep -q "exceeded your current quota" "$log" || break
   if [ "$model" != "$fallback" ]; then
-    echo "（API の上限で止まった。$fallback に切り替えて続きを送る）"; model=$fallback
+    echo "(stopped at the API rate limit; switching to $fallback and sending the rest)"; model=$fallback
   else
-    echo "（API の上限で止まった。一分待って続きを送る）"; sleep 65
+    echo "(stopped at the API rate limit; waiting a minute and sending the rest)"; sleep 65
   fi
   run_once "$resume"
 done
 tail -n "${OPENCODE_LINES:-80}" "$log"
-cd "$root" && opencode stats --project . --days 0 --cost | grep -m1 -E "^\s+cost" | sed "s/^ */今日の opencode の額（このリポジトリ）: /"
+cd "$root" && opencode stats --project . --days 0 --cost | grep -m1 -E "^\s+cost" | sed "s/^ */opencode cost today (this repository): /"

@@ -5,9 +5,9 @@
 # 同じ名前なら同じ会話に続ける（会話のID は.git/ask/<名前>.agy に残す）。
 set -euo pipefail
 here=$(cd "$(dirname "$0")/.." && pwd)
-role=${1:?役}; name=${2:?名前}; src=${3:?依頼文のファイル}; model=${4:-}; work=${5:-}
+role=${1:?role}; name=${2:?name}; src=${3:?request file}; model=${4:-}; work=${5:-}
 allow=$(python3 "$here/role.py" --setting agy.allow_print ${work:+--work "$work"})
-[ "$allow" = true ] || { echo "agy -p は roles.toml の [agy] allow_print = true のときだけ使える（今は ${allow:-false}）" >&2; exit 5; }
+[ "$allow" = true ] || { echo "agy -p is allowed only when [agy] allow_print = true in roles.toml (now ${allow:-false})" >&2; exit 5; }
 
 root=$(git rev-parse --show-toplevel)
 state="$(git rev-parse --git-dir)/ask/${name//[^A-Za-z0-9_-]/_}.agy"; mkdir -p "$(dirname "$state")"

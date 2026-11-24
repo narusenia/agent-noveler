@@ -17,12 +17,12 @@ def body(path: Path) -> str:
 
 def main() -> None:
     if len(sys.argv) < 3:
-        sys.exit("使い方: bundle.py OUT_DIR 章ファイル...")
+        sys.exit("usage: bundle.py OUT_DIR CHAPTER_FILE...")
     out = Path(sys.argv[1])
     files = sorted(Path(p) for p in sys.argv[2:])
     for f in files:
         if not f.name.endswith(".kym.txt"):
-            sys.exit(f"本文（.kym.txt）以外は束ねない: {f}")
+            sys.exit(f"only manuscript files (.kym.txt) can be bundled: {f}")
     out.mkdir(parents=True, exist_ok=True)
     book = out / "book.txt"
     book.write_text("\n\n――――――――\n\n".join(body(f) for f in files) + "\n", encoding="utf-8")
