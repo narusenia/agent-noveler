@@ -24,7 +24,7 @@ if [ "$src" = - ]; then tmp=$(mktemp); trap 'rm -f "$tmp"' EXIT; cat >"$tmp"; sr
 
 case $runner in
   claude)
-    echo "${role} の担い手は claude（サブエージェント）。メインの会話から Agent ツール（subagent_type: ${role}）で頼む" >&2; exit 4 ;;
+    echo "${role} の担い手は claude（サブエージェント）。メインの会話から Agent ツール（subagent_type: ${role}${model:+、model: ${model}}）で頼む" >&2; exit 4 ;;
   agy)
     HAND_MODEL=$model bash "$here/../skills/herdr-agy/scripts/hand.sh" "$role" "$name" "$src" ;;
   agy-print)
