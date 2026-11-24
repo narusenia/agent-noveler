@@ -13,9 +13,9 @@ AI と一緒に日本語の小説を書くための道具一式です。原稿�
 | `harness/` | エージェントの道具。役（書く、校正する、批評するなど）の手順書、決まり、スキル、役ごとの担い手を決める仕組み、文体パック | MIT |
 | `examples/sample-work/` | 見本作品「灯台の鍵」（序章と第一章）。syuki と shosai がそのまま動く | MIT |
 
-## 入れ方
+## Install
 
-先に [git](https://git-scm.com/downloads)、[uv](https://docs.astral.sh/uv/)、[Node.js](https://nodejs.org/) 22 以上を入れておきます。次の一行で、`noveler` コマンドと syuki が入ります。
+You need [git](https://git-scm.com/downloads), [uv](https://docs.astral.sh/uv/) and [Node.js](https://nodejs.org/) 22 or later. This line installs the `noveler` command and syuki:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/narusenia/agent-noveler/main/install.sh | bash
@@ -26,37 +26,37 @@ curl -fsSL https://raw.githubusercontent.com/narusenia/agent-noveler/main/instal
 - The files go into `~/.local/share/agent-noveler`, and the `noveler` command into `~/.local/bin`. Add `~/.local/bin` to your PATH.
 - [gum](https://github.com/charmbracelet/gum), used for the prompts, is installed into the noveler folder automatically, not system-wide.
 
-## 使い方
+## Usage
 
 ```sh
 noveler new ~/novels      # create a manuscript repository and its first work
 cd ~/novels
-noveler open              # open it in shosai
+noveler open              # open the works in shosai
 noveler build             # build a PDF
 ```
 
-本文は作品のフォルダの `manuscript/<巻>/<章>.kym.txt` に書きます。
+Write each chapter in `<work>/manuscript/<volume>/<chapter>.kym.txt`.
 
 | Command | Description |
 | --- | --- |
-| `noveler new [folder]` | Create a manuscript repository: install the harness, choose a style pack and a writing mode (AI writes / you write), and add the first work |
-| `noveler add [work]` | Add a work folder. Asks for the title and author, and sets up the ledger and PDF settings |
-| `noveler open` | Open the manuscript repository in shosai |
-| `noveler build [work] [volume]` | Build a PDF, or an EPUB with `--epub` |
-| `noveler update` | Update noveler and syuki, and reinstall `.agents/` after confirmation |
-| `noveler doctor` | Show installed tools and versions, and the `syuki check` result for each work |
-| `noveler help` | List the commands |
+| `noveler new [folder]` | Create a manuscript repository (git init, harness, first work). Asks for a style pack and a writing mode: `ai` (AI writes, you review) or `human` (you write, AI reviews) |
+| `noveler add [work]` | Add a work folder (syuki ledger, PDF config, `manuscript/vol1/`). Asks for the title and author |
+| `noveler open [folder]` | Open the works in the reading desk (shosai). Works under `packages/` are found too |
+| `noveler build [work] [vol]` | Build a PDF (`--epub` for EPUB) |
+| `noveler update` | Update noveler and syuki, then reinstall `.agents/` (asks first) |
+| `noveler doctor` | Show installed tools and versions, and syuki check results |
+| `noveler help` | Show the command list |
 
-`-y` (`--yes`) skips the prompts and uses the defaults.
+`-y` (`--yes`) uses the defaults without asking.
 
-### 道具を一つずつ入れる
+### Install the components one by one
 
-| 道具 | 入れ方 |
+| Component | Command |
 | --- | --- |
-| shosai | `npx @narusenia/shosai ~/novels`（作品のフォルダが並んだフォルダを渡す） |
-| syuki | `uv tool install "syuki[ja] @ git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki"`（入れずに試すなら `uvx --from "git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki" syuki check`） |
+| shosai | `npx @narusenia/shosai ~/novels` (pass the folder that holds your works) |
+| syuki | `uv tool install "syuki[ja] @ git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki"` (to try it without installing: `uvx --from "git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki" syuki check`) |
 
-npx で起動した書斎は、PATH の `syuki` を呼んで台帳を表示します。syuki が無くても、本文を読む、赤を入れる、組版を見る、はそのまま使えます。
+shosai started with npx calls `syuki` on your PATH to show the ledger. Without syuki you can still read, mark up and preview the typesetting.
 
 ## 見本で試す
 
