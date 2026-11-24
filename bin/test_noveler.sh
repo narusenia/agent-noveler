@@ -51,3 +51,11 @@ grep -q '例 `packages/mywork/`' "$r/AGENTS.md" || fail "AGENTS.md work path"
 grep -q 'one: ok' "$tmp/doctor2.txt" || fail "doctor one"
 grep -q 'two: ok' "$tmp/doctor2.txt" || fail "doctor two"
 echo "ok: noveler packages layout"
+
+# 文体パック general を選ぶ
+rm -rf "$tmp/plain"
+NOVELER_PACK=general NOVELER_WORK=g "$noveler" new "$tmp/plain"
+grep -q '^pack = "general"' "$tmp/plain/.agents/roles.toml" || fail "general pack"
+[ "$(readlink "$tmp/plain/.agents/style")" = packs/general ] || fail "style link"
+[ -f "$tmp/plain/.agents/skills/general/scripts/check_style.py" ] || fail "general lint"
+echo "ok: noveler general pack"

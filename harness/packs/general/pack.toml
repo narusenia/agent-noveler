@@ -1,0 +1,17 @@
+# 文体パック general の中身の一覧。ジャンルを決めない最小のパックで、核の手順書だけで動くことを示す。
+# scripts/link-pack.sh general で、下の skills・rules をハーネスへつなぎ、パックを .agents/style にリンクする。
+
+name = "general"
+title = "汎用"
+description = "ジャンルを決めない最小の文体パック。役の手順書の見方をほぼそのまま使う"
+
+[provides]
+skills = ["general"]                # 書き方の短い目安。lint（scripts/・data/）は light-novel パックのものへのリンクで共有する
+rules = ["prose-tools.md"]          # 本文に lint と校正を当てるときの優先順位
+agents = []                         # 足す役は無い
+roles = "roles/"                    # 役ごとの見方。.agents/style/roles/<役>.md として核の手順書が読む
+# first-read の初見読者は、パックに first-read/prompt.md が無いので、スキル first-read の汎用の人物像を使う
+
+[customize]
+profile = "style/profile.toml"      # lint の設定。syuki init が light-novel の雛形を写すので、rhythm や balance を作品に合わせて書き換える
+keep = "style/keep.md"              # 作者が気に入った文。lint と校正で変えない
