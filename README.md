@@ -71,10 +71,7 @@ flowchart LR
 curl -fsSL https://raw.githubusercontent.com/narusenia/agent-noveler/main/install.sh | bash
 ```
 
-- 入れる途中で、Node.js・pnpm・uv・gumを何で管理するかを聞かれます。`mise`か`plain`を選びます。`plain`は、すでに入っているものをそのまま使います。
-- 聞かれずに[mise](https://mise.jdx.dev)を使うときは、行の末尾を`| bash -s -- --tools mise`にします。miseは先に入れておいてください。
-- 本体は`~/.local/share/agent-noveler`に、`noveler`コマンドは`~/.local/bin`に入ります。`~/.local/bin`をPATHに足してください。
-- 画面の表示に使う[gum](https://github.com/charmbracelet/gum)は、novelerのフォルダに自動で入ります。システムには入りません。
+途中で、Node.jsなどの道具を[mise](https://mise.jdx.dev)で管理するかを聞かれます。使っていなければ`plain`を選びます。
 
 shosaiとsyukiを別々に入れるときは、[packages/shosai/README.md](packages/shosai/README.md)と[packages/syuki/README.md](packages/syuki/README.md)を見てください。
 
@@ -87,18 +84,18 @@ noveler open              # 書斎で開く
 noveler build             # PDF に書き出す
 ```
 
-本文は`<作品>/manuscript/<巻>/<章>.kym.txt`に書きます。novelerの画面の表示は英語です。
+本文は`<作品>/manuscript/<巻>/<章>.kym.txt`に書きます。
 
 | コマンド | すること |
 | --- | --- |
-| `noveler new [フォルダ]` | 原稿のリポジトリを作ります（git init、ハーネス、最初の作品）。文体パックと書き方を聞かれます。書き方は`ai`（AIが書き、自分が見る）か`human`（自分が書き、AIが見る） |
+| `noveler new [フォルダ]` | 原稿のリポジトリと最初の作品を作ります。文体パックと書き方を聞かれます。書き方は`ai`（AIが書き、自分が見る）か`human`（自分が書き、AIが見る） |
 | `noveler new --layout single\|packages` | 作品の置き場所を選びます。`single`（既定。リポジトリの直下）か`packages`（`packages/<作品>/`。一つのリポジトリで複数の作品を書くとき） |
-| `noveler new --flow full\|standard\|lite` | 一章ごとの見直しの段の数を選びます。`standard`（既定。見直しを一回にまとめる）、`full`（全部の段）、`lite`（段もトークンも最少）。`.agents/roles.toml`の`[mode] flow`に残ります |
-| `noveler add [作品]` | 作品のフォルダを足します（syukiの台帳、PDFの設定、`manuscript/vol1/`）。題と作者名を聞かれます |
-| `noveler open [フォルダ]` | 作品を書斎（shosai）で開きます。`packages/`の下の作品も見つけます |
+| `noveler new --flow full\|standard\|lite` | 一章ごとの見直しの量を選びます。`standard`（既定）、`full`（全部の段）、`lite`（最少） |
+| `noveler add [作品]` | 作品を足します。題と作者名を聞かれます |
+| `noveler open [フォルダ]` | 作品を書斎（shosai）で開きます |
 | `noveler build [作品] [巻]` | PDFに書き出します（`--epub`でEPUB） |
-| `noveler update` | novelerとsyukiを最新にし、`.agents/`を入れ直します（入れ直す前に確認します） |
-| `noveler doctor` | 入っている道具と版、`syuki check`の結果を表示します |
+| `noveler update` | novelerとsyuki、ハーネスを最新にします |
+| `noveler doctor` | 入っている道具と、`syuki check`の結果を表示します |
 | `noveler help` | コマンドの一覧を表示します |
 
 `-y`（`--yes`）を付けると、聞かずに既定値で進みます。
