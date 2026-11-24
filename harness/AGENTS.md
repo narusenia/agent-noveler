@@ -46,7 +46,7 @@
 ### 役の頼み方
 
 - 役ごとの担い手は `.agents/roles.toml` に書いてある。一覧は `python3 .agents/scripts/role.py --list --work <作品>`。担い手を変えたいときは、この設定だけを書き換える。
-- 担い手が `claude`（既定）の役は、メインの会話から Agent ツールで頼む（`subagent_type` に役の名前）。`roles.toml` にその役の `model`（`sonnet`・`opus` など）が書いてあれば、Agent ツールの `model` に渡す。引き方は `python3 .agents/scripts/role.py <役> --field model`。
+- 担い手が `claude`（既定）の役は、メインの会話から Agent ツールで頼む（`subagent_type` に役の名前）。`roles.toml` にその役の `model` が書いてあれば、Agent ツールの `model` に渡す（既定は書く役と見る役が `sonnet`、proofreader と checker が `haiku`。重くしたい役だけ `opus` に変える）。引き方は `python3 .agents/scripts/role.py <役> --field model`。
 - それ以外の担い手の役は `bash .agents/scripts/ask.sh --work <作品> <役> <名前> <依頼のファイル|->` で頼む。名前は作業ごとに一つ（例 `mywork-vol1-04-writer`）。同じ名前で送ると同じ会話に続くので、指示・カード・原稿を読み直させずに済む。会話が長くなって重くなったら、名前を変え、読むものを絞って頼み直す。
 - 担い手が使えないとき（利用枠切れなど）は `--fallback` を付けると、`roles.toml` の `fallback` に書いた担い手に回る。
 - 書く役と見る役を別のモデルに任せると、同じ癖を見落としにくい。たとえば writer を Gemini にして、critic などを Claude に残す（`roles.toml` の末尾の例）。

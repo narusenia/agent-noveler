@@ -40,20 +40,46 @@ model = "sonnet"
 
 [helpers.first-read-light]
 runner = "claude"
+model = "sonnet"
 
 [helpers.first-read-heavy]
 runner = "claude"
+model = "sonnet"
+
+# 役ごとの既定のモデル（担い手はclaude）。重くしたい役だけopusに変える。
+[roles.writer]
+model = "sonnet"
+
+[roles.planner]
+model = "sonnet"
+
+[roles.editor]
+model = "sonnet"
+
+[roles.critic]
+model = "sonnet"
+
+[roles.auditor]
+model = "sonnet"
+
+[roles.slop]
+model = "sonnet"
+
+[roles.reader]
+model = "sonnet"
+
+[roles.proofreader]
+model = "haiku"
+
+[roles.checker]
+model = "haiku"
 
 # ここから下は、Claude Code以外の担い手を使うときの例。使うなら#を外して書き換える。
 #
 # 書く役（writer・planner）を別のモデルに任せ、見る役（criticなど）をClaudeに残すと、書く側と見る側の癖が重なりにくい。
-# herdrのペインのagyに書かせ、使えないときはOpenCodeに回す例:
+# herdrのペインのagyに書かせ、使えないときはOpenCodeに回す例（上の[roles.writer]・[roles.planner]の中身をこう書き換える）:
 #
 # [roles.writer]
-# runner = "agy"
-# fallback = { runner = "opencode", model = "google/gemini-4-hydrogen" }
-#
-# [roles.planner]
 # runner = "agy"
 # fallback = { runner = "opencode", model = "google/gemini-4-hydrogen" }
 #

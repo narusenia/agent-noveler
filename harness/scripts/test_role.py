@@ -23,4 +23,5 @@ print("ok")
 base = tomllib.loads((Path(__file__).parent.parent / "roles.toml").read_text())
 assert all(resolve(base, n)["runner"] == "claude" for n in ["writer", "planner", "critic", "spar", "first-read-light", "first-read-heavy"])
 assert (field(base, "mode.write"), field(base, "agy.allow_print"), field(base, "style.pack")) == ("ai", "False", "light-novel")
+assert [resolve(base, n)["model"] for n in ["writer", "critic", "proofreader", "checker", "spar"]] == ["sonnet", "sonnet", "haiku", "haiku", "sonnet"]
 print("ok")
