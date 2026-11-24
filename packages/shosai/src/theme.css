@@ -1,0 +1,111 @@
+/* shosai の見た目の正本。nudgix の semi-neumorphism に倣い、面は「浮いた面（--shadow）」と「へこんだ井戸（--inset）」の二種類だけ。
+   境目は枠線でなく box-shadow の 1px の輪で出す。色は灰色の濃淡と朱一色、本文面は紙。 */
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: Inter, "Noto Sans JP", "Hiragino Sans", system-ui, sans-serif;
+  --font-mincho: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --color-bg: #eceef1;
+  --color-panel: #f5f6f8;
+  --color-raised: #fcfcfd;
+  --color-well: #e4e6ea;
+  --color-line: rgb(16 18 27 / 0.08);
+  --color-fg: #1b1c20;
+  --color-sub: #5b5e68;
+  /* 本文面 */
+  --color-paper: #fbf8f1;
+  --color-ink: #24201b;
+  /* 組版の周り。テーマに関係なく中立の灰色にして、紙の色の見え方をずらさない */
+  --color-stage: #46474b;
+  /* 影は .dark で変えるので、値は @theme の外（--sh-*）に置く。@theme に値を書くと shadow-* のクラスに書き写され、ダークで変わらない */
+  /* 朱。白い字を載せても 4.5:1 を超える濃さ */
+  --color-pen: #c23a22;
+  --color-pen-text: #b0341e;
+  --color-pen-soft: rgb(194 58 34 / 0.14);
+
+  --shadow-raised: var(--sh-raised);
+  --shadow-well: var(--sh-well);
+  --shadow-pen: var(--sh-pen);
+  --shadow-stage: var(--sh-stage);
+  --shadow-sheet: var(--sh-sheet);
+}
+
+@layer base {
+  :root {
+    --sh-raised: 0 0 0 1px rgb(16 18 27 / 0.06), inset 0 1px 0 #ffffff, 0 6px 16px -6px rgb(16 18 27 / 0.18), 0 1px 2px rgb(16 18 27 / 0.08);
+    --sh-well: inset 0 1px 3px rgb(16 18 27 / 0.12), inset 0 -1px 0 #ffffff;
+    --sh-pen: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 2px 8px rgb(194 58 34 / 0.35);
+    --sh-stage: inset 0 2px 6px rgb(0 0 0 / 0.45), inset 0 -1px 0 rgb(255 255 255 / 0.05);
+    --sh-sheet: 0 0 0 1px rgb(16 18 27 / 0.06), inset 0 1px 0 #ffffff, 0 -8px 28px rgb(16 18 27 / 0.16);
+  }
+  .dark {
+    color-scheme: dark;
+    --color-bg: #0e0f11;
+    --color-panel: #15161a;
+    --color-raised: #1c1d22;
+    --color-well: #0b0c0e;
+    --color-line: rgb(255 255 255 / 0.06);
+    --color-fg: #e6e7ea;
+    --color-sub: #9a9ca5;
+    --color-paper: #1f1d1a;
+    --color-ink: #e6dfd2;
+    --color-pen: #d4543a;
+    --color-pen-text: #f08a72;
+    --color-pen-soft: rgb(240 138 114 / 0.18);
+    --sh-raised: 0 0 0 1px rgb(255 255 255 / 0.05), inset 0 1px 0 rgb(255 255 255 / 0.06), 0 6px 16px -4px rgb(0 0 0 / 0.6), 0 1px 2px rgb(0 0 0 / 0.5);
+    --sh-well: inset 0 1px 3px rgb(0 0 0 / 0.55), inset 0 -1px 0 rgb(255 255 255 / 0.04);
+    --sh-pen: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 2px 8px rgb(212 84 58 / 0.4);
+    --sh-sheet: 0 0 0 1px rgb(255 255 255 / 0.05), inset 0 1px 0 rgb(255 255 255 / 0.06), 0 -10px 30px rgb(0 0 0 / 0.6);
+  }
+  html, body, #root { height: 100%; margin: 0; overscroll-behavior: none; }
+  body { background: var(--color-bg); color: var(--color-fg); font: 13px/1.5 var(--font-sans); -webkit-font-smoothing: antialiased; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--color-pen); outline-offset: 1px; }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+}
+
+/* 板（サイドバー・本文・右のパネル）。8px の隙間を空けて並べる */
+@utility panel {
+  background: var(--color-panel);
+  border-radius: 10px;
+  box-shadow: var(--shadow-raised);
+}
+/* 入れ物（セグメント・件数・入力欄）はへこませる */
+@utility well {
+  background: var(--color-well);
+  box-shadow: var(--shadow-well);
+}
+/* 押せる物。ふだんは平らで、hover と押された時だけ浮く */
+@utility ghost {
+  background: transparent;
+  color: var(--color-sub);
+  transition: background 120ms var(--ease-out), box-shadow 120ms var(--ease-out), transform 80ms var(--ease-out);
+  &:hover, &[aria-pressed="true"], &[data-pressed], &[aria-selected="true"] {
+    background: var(--color-raised);
+    box-shadow: var(--shadow-raised);
+    color: var(--color-fg);
+  }
+  &:active { transform: scale(0.94); }
+}
+/* いつも浮いている押せる物 */
+@utility raised {
+  background: var(--color-raised);
+  box-shadow: var(--shadow-raised);
+  color: var(--color-fg);
+  transition: transform 80ms var(--ease-out);
+  &:active { transform: scale(0.94); }
+}
+/* 主の操作だけ朱 */
+@utility primary {
+  background: var(--color-pen);
+  box-shadow: var(--shadow-pen);
+  color: #fff;
+  transition: transform 80ms var(--ease-out);
+  &:active { transform: scale(0.94); }
+}

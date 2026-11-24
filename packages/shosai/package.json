@@ -1,0 +1,37 @@
+{
+  "name": "@narusenia/shosai",
+  "description": "縦書きの赤入れビューワ",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "dev": "vite",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "e2e": "node e2e/smoke.mjs"
+  },
+  "dependencies": {
+    "@base-ui/react": "1.9.0",
+    "@narusenia/kakuyomu-vfm": "0.1.2",
+    "@vivliostyle/core": "2.43.1",
+    "@vivliostyle/theme-epub3j": "1.1.1",
+    "@vivliostyle/vfm": "2.7.0",
+    "clsx": "2.1.1",
+    "lucide-react": "1.73.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.5",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "playwright-core": "^1.65.0",
+    "tailwindcss": "4.3.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.7",
+    "vitest": "^5.1.0"
+  }
+}

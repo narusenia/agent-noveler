@@ -1,0 +1,134 @@
+/* 縦書きの本文面。Tailwind に載せず素の CSS で持つ（ルビ・傍点・縦中横・赤の印・writing-mode）。
+   色は theme.css の --color-paper / --color-ink / --color-pen を使う。指摘の種類は色でなく線の形で分ける。 */
+
+/* スクロールするのは横書きの外枠。縦書きの要素そのものをスクロールさせると、
+   WebKit は中に要素を足すたびに scrollLeft を 0 に戻してしまう */
+.reader {
+  --heat-run: color-mix(in srgb, #2e9e78 13%, transparent);
+  --heat-drop: #8e5bd0;
+  flex: 1; min-height: 0; overflow-x: auto; overflow-y: hidden;
+  writing-mode: horizontal-tb; direction: ltr;
+  background: var(--color-paper); color: var(--color-ink);
+}
+.dark .reader { --heat-run: color-mix(in srgb, #4fd1a5 15%, transparent); --heat-drop: #b994ff; }
+.reader > .text {
+  writing-mode: vertical-rl;
+  height: 100%; width: max-content; margin-left: auto; /* 短い章も右から始める */
+  padding: 28px 40px 60px;
+  font-family: var(--font-mincho);
+  font-size: var(--fs, 19px); line-height: 1.9;
+  font-feature-settings: "palt" 0;
+}
+.reader p, .reader h2 { margin: 0; }
+.reader h2 { font-size: 1.35em; font-weight: 600; margin-inline-start: 3em; margin-block-end: 2.5em; }
+.reader .blank { block-size: 1em; }
+.reader rt { font-size: .5em; user-select: none; -webkit-user-select: none; }
+.reader .em { text-emphasis: filled sesame; -webkit-text-emphasis: filled sesame; }
+.reader .tcy { text-combine-upright: all; }
+.reader ::selection { background: color-mix(in srgb, var(--color-pen) 24%, transparent); }
+
+/* 声の色（判断の材料）。赤と別の色相にし、字の色は変えない */
+.reader p.heat-run { background: var(--heat-run); }
+/* 縦書きなので段落の頭（右端）に線を引く。影なので字の位置はずれない */
+.reader p.heat-drop { box-shadow: inset -3px 0 0 var(--heat-drop); }
+
+/* 未適用の赤（原稿はまだ元の字のまま） */
+.reader .skip { user-select: none; -webkit-user-select: none; }
+.reader [data-entry] { cursor: pointer; }
+.reader .pend-del { text-decoration: line-through 2px var(--color-pen); }
+.reader .fix { text-decoration: underline double var(--color-pen); text-underline-position: left; }
+.reader .pend-em { text-emphasis: filled sesame var(--color-pen); -webkit-text-emphasis: filled sesame var(--color-pen); }
+.reader .pend-ins { color: var(--color-pen-text); }
+/* 挿入は字の左に赤い線を引いて、足す字だとわかるようにする */
+.reader .pend-insert { border-inline-start: 2px solid var(--color-pen); padding-inline-start: 1px; }
+.reader .pend-note {
+  color: var(--color-pen-text); font-family: var(--font-sans); font-size: .55em; vertical-align: super; margin: 0 .15em;
+}
+/* 提案は実線、コメントは点線、質問は波線 */
+.reader .note { text-underline-position: left; text-underline-offset: 3px; }
+.reader .note-suggest { text-decoration: underline 2px solid var(--color-pen); }
+.reader .note-comment { text-decoration: underline 2px dotted var(--color-pen); }
+.reader .note-q { text-decoration: underline 2px wavy var(--color-pen); }
+/* 札: 提案は塗り、コメントは輪、質問は塗りの「？」 */
+.reader .badge {
+  display: inline-block; inline-size: 1.5em; block-size: 1.5em; line-height: 1.5em;
+  margin: 0 .15em; border-radius: 50%; text-align: center;
+  font-family: var(--font-sans); font-size: .55em; font-weight: 700; vertical-align: super;
+  color: #fff; background: var(--color-pen);
+}
+.reader .b-comment { color: var(--color-pen-text); background: transparent; box-shadow: inset 0 0 0 1.5px var(--color-pen); }
+.reader .badge:focus-visible, .reader [data-entry]:focus-visible { outline: 2px solid var(--color-pen); outline-offset: 2px; }
+.reader .caret { color: var(--color-pen); font-weight: 700; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+.reader .flash { animation: flash 1.2s ease-out; }
+@keyframes flash { from { background: var(--color-pen-soft); } }
+
+/* 短いコメントは、札から列の右脇（ルビの側）に小さく添える */
+.reader .badge[data-note] { position: relative; }
+.reader .badge[data-note]::after {
+  content: attr(data-note);
+  position: absolute; top: 0; right: -1.5em;
+  writing-mode: vertical-rl; white-space: nowrap;
+  font-size: 1em; font-weight: 400; line-height: 1;
+  color: var(--color-pen-text); background: none;
+}
+
+/* 未適用のルビ: 新しい読みを親字の右脇に、ルビと同じ大きさで出す。元のルビは隠す */
+.reader .pend-ruby { display: inline-block; inline-size: 0; block-size: 1em; position: relative; }
+.reader .pend-ruby::after {
+  content: attr(data-note);
+  position: absolute; top: 0; left: 100%; margin-left: .05em;
+  writing-mode: vertical-rl; white-space: nowrap;
+  font-size: .5em; line-height: 1; color: var(--color-pen-text);
+}
+.reader ruby.fix rt { visibility: hidden; }
+
+/* syuki の印。朱は赤だけに使うので、墨の濃淡で描く */
+.reader {
+  --sy: color-mix(in srgb, var(--color-ink) 55%, transparent);
+  --sy-soft: color-mix(in srgb, var(--color-ink) 30%, transparent);
+}
+/* 場面の番号と作中の日時・場所・人物。区切りの ＊ の後ろ（場面 1 は題の後ろ）に小さく */
+.reader .sy-scene {
+  margin-inline-start: 1.2em; font-family: var(--font-sans); font-size: .5em; font-weight: 400; letter-spacing: .04em; color: var(--sy);
+}
+/* 余白の札: 台帳の照合は四角、伏線は丸。種類は字で言う */
+.reader .sy-mark {
+  display: inline-block; inline-size: 1.5em; block-size: 1.5em; line-height: 1.5em; margin: 0 .15em; text-align: center;
+  font-family: var(--font-sans); font-size: .5em; font-weight: 600; vertical-align: super; color: var(--sy);
+  box-shadow: inset 0 0 0 1px var(--sy); cursor: pointer;
+}
+.reader .sy-thread { border-radius: 50%; }
+.reader .sy-check { border-radius: 2px; }
+.reader .sy-lint { text-decoration: underline 1px dotted var(--sy-soft); text-underline-position: left; text-underline-offset: 2px; }
+.reader .sy-name { text-decoration: underline 1px solid var(--sy-soft); text-underline-position: left; text-underline-offset: 2px; cursor: pointer; }
+
+/* 章を移る間は前の章を薄く残す */
+.reader[aria-busy="true"] { opacity: .45; transition: opacity 200ms; }
+
+@media (max-width: 820px) {
+  /* 上下のバーは本文に重ねる。隠れる分の余白はバーの有無にかかわらず取り、組みの大きさを変えない */
+  .reader > .text {
+    padding: calc(max(8px, env(safe-area-inset-top)) + 56px + var(--read-pad, 21px)) 16px calc(max(16px, env(safe-area-inset-bottom)) + 72px + var(--read-pad, 21px));
+  }
+  /* 横のスワイプは自前でページ送りにする */
+  .reader { touch-action: pan-y pinch-zoom; }
+}
+
+/* 指摘の一覧の種類の見本（線の形） */
+.kind-line { display: inline-block; width: 14px; height: 0; border-top: 2px solid var(--color-pen); }
+.kind-line.k-comment { border-top-style: dotted; }
+.kind-line.k-q { border-top-style: dashed; }
+.kind-line.k-ruby { border-top: 3px double var(--color-pen); height: 0; }
+.kind-line.k-keep { border-top-color: var(--color-sub); }
+
+/* スマホの組版: 上下のバーの間に固定で置く（バーを隠しても組み直さない） */
+.phone-stage {
+  top: calc(max(8px, env(safe-area-inset-top)) + 52px);
+  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 68px);
+}
+
+/* スマホの読書の組版: 画面いっぱい（safe-area の内側）。上下のバーは重ねる */
+.reading-stage {
+  inset: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
