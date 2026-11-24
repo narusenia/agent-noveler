@@ -69,3 +69,26 @@ rm -rf "$tmp/ln"
 NOVELER_PACK=light-novel NOVELER_WORK=l "$noveler" new "$tmp/ln"
 grep -q '^rhythm = "緩急"' "$tmp/ln/l/style/profile.toml" || fail "light-novel profile template"
 echo "ok: noveler light-novel pack"
+
+# 入れ直し（noveler update が呼ぶ install.sh --update）: 一覧のファイルだけを入れ替え、作品側が足したものと roles.toml は残す
+a=$tmp/ln/.agents
+grep -qx agents/critic.md "$a/.harness-manifest" || fail "manifest lists harness files"
+grep -qx skills/light-novel "$a/.harness-manifest" || fail "manifest lists pack links"
+mkdir -p "$a/skills/foo" && echo mine >"$a/skills/foo/SKILL.md"
+echo '# mine' >>"$a/roles.toml"
+echo changed >"$a/agents/critic.md"
+rm "$a/agents/editor.md"
+bash "$root/harness/scripts/install.sh" --update "$tmp/ln" light-novel >/dev/null
+[ "$(cat "$a/skills/foo/SKILL.md")" = mine ] || fail "update keeps skills/foo"
+grep -qx '# mine' "$a/roles.toml" || fail "update keeps roles.toml"
+cmp -s "$a/agents/critic.md" "$root/harness/agents/critic.md" || fail "update replaces harness files"
+[ -f "$a/agents/editor.md" ] || fail "update restores removed harness files"
+[ "$(readlink "$a/style")" = packs/light-novel ] || fail "update keeps the pack"
+grep -qx skills/foo/SKILL.md "$a/.harness-manifest" && fail "manifest lists the work's own files"
+# 一覧の無い古いリポジトリでは入れ直さない
+rm "$a/.harness-manifest"
+bash "$root/harness/scripts/install.sh" --update "$tmp/ln" 2>/dev/null && fail "update without a manifest should stop"
+[ -f "$a/skills/foo/SKILL.md" ] || fail "no-manifest update keeps files"
+bash "$root/harness/scripts/install.sh" --manifest "$tmp/ln" >/dev/null
+grep -qx agents/critic.md "$a/.harness-manifest" || fail "--manifest"
+echo "ok: harness update keeps the work's own files"

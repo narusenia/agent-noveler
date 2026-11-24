@@ -256,11 +256,13 @@ cmd_update() {
   repo=$(find_repo) || return 0
   if [ "$TOOLS" = mise ] && [ -f "$repo/mise.toml" ]; then (cd "$repo" && spin "mise install" mise install node pnpm uv gum); fi
   pack=$(sed -n 's/^pack = "\(.*\)"/\1/p' "$repo/.agents/roles.toml" | head -1)
-  if confirm "Reinstall $repo/.agents/ from the latest version? (Your edits outside roles.toml will be lost)"; then
-    cp "$repo/.agents/roles.toml" "$repo/.roles.toml.bak"
-    rm -rf "$repo/.agents"
-    bash "$SRC/harness/scripts/install.sh" "$repo" "${pack:-general}"
-    mv "$repo/.roles.toml.bak" "$repo/.agents/roles.toml"
+  # 入れ替えるのは .agents/.harness-manifest にあるファイルだけ。一覧が無ければ install.sh が案内を出して止まる
+  if [ ! -f "$repo/.agents/.harness-manifest" ]; then
+    bash "$SRC/harness/scripts/install.sh" --update "$repo" || true
+    return 0
+  fi
+  if confirm "Reinstall the harness files in $repo/.agents/ from the latest version? (roles.toml and files you added are kept; your edits to harness files are replaced)"; then
+    bash "$SRC/harness/scripts/install.sh" --update "$repo" "${pack:-general}"
   fi
 }
 
@@ -296,7 +298,8 @@ noveler — write novels with AI agents (agent-noveler)
   noveler add [work]           Add a work folder (syuki ledger, PDF config, manuscript/vol1/)
   noveler open [folder]        Open the works in the reading desk (shosai)
   noveler build [work] [vol]   Build a PDF (--epub for EPUB)
-  noveler update               Update noveler and syuki, then reinstall .agents/ (asks first)
+  noveler update               Update noveler and syuki, then reinstall the harness files listed in
+                               .agents/.harness-manifest (asks first; keeps roles.toml and files you added)
   noveler doctor               Show installed tools and versions, and syuki check results
   noveler help                 Show this help
 
