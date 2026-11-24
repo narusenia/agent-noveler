@@ -49,7 +49,7 @@ describe("resolve", () => {
   it("re-finds a quote after lines shift", () => {
     const lines = ["新しい行", "海に、霧が出ていた。", "坂の下"];
     const a = { line: 1, quote: "霧", prefix: "海に、", suffix: "が出て" };
-    expect(resolve(a, lines)).toEqual({ line: 2, start: 3, end: 5 });
+    expect(resolve(a, lines)).toEqual({ line: 2, start: 3, end: 4 });
   });
   it("anchors a deletion by its context", () => {
     const a = { line: 1, quote: "", prefix: "海に、", suffix: "が出て" };
