@@ -210,11 +210,11 @@ def check_threads(work: Work, r: Report):
 
 
 def style_pack(base: Path, root: Path) -> str:
-    """使う文体パックの名前。作品の roles.toml、ハーネスの roles.toml の [style] pack の順に引き、無ければ light-novel。"""
+    """使う文体パックの名前。作品の roles.toml、ハーネスの roles.toml の [style] pack の順に引き、無ければ general。"""
     for f in (root / "roles.toml", base / "roles.toml"):
         if f.is_file() and (pack := tomllib.loads(f.read_text(encoding="utf-8")).get("style", {}).get("pack")):
             return pack
-    return "light-novel"
+    return "general"
 
 
 def lint_scripts(root: Path) -> Path | None:

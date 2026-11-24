@@ -30,7 +30,7 @@ flow = "standard"
 # 使う文体パック（.agents/packs/<名前>/）。scripts/link-pack.shで同じパックをつないでおく。
 # first-readは、ここに書いたパックの初見読者の人物像を使う。空にすると汎用の人物像になる。
 [style]
-pack = "light-novel"
+pack = "general"
 
 # agy -p（printモード）を使ってよいか。agy -pを他のエージェントやスクリプトから呼ぶと、利用規約に触れることがある。
 # 既定はfalseで、どの道具もagy -pを呼ばない。規約を自分で確かめたうえで、自分の責任でtrueにする。

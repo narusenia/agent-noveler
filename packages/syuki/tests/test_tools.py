@@ -49,9 +49,9 @@ def test_lint_scripts_follow_style_pack(tmp_path):
     agents = tmp_path / "repo" / ".agents"
     work = tmp_path / "repo" / "mywork"
     work.mkdir(parents=True)
-    for pack in ("light-novel", "mystery"):
+    for pack in ("general", "light-novel", "mystery"):
         (agents / "skills" / pack / "scripts").mkdir(parents=True)
-    assert lint_scripts(work) == agents / "skills" / "light-novel" / "scripts"  # roles.toml が無ければ light-novel
+    assert lint_scripts(work) == agents / "skills" / "general" / "scripts"  # roles.toml が無ければ general
     (agents / "roles.toml").write_text('[style]\npack = "mystery"\n', encoding="utf-8")
     assert lint_scripts(work) == agents / "skills" / "mystery" / "scripts"
     (work / "roles.toml").write_text('[style]\npack = "light-novel"\n', encoding="utf-8")  # 作品の roles.toml が優先

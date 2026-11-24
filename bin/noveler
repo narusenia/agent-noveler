@@ -160,7 +160,7 @@ cmd_new() {
     case $layout in single | packages) ;; *) die "layout must be single or packages: $layout" ;; esac
     packs=$(cd "$SRC/harness/packs" && for f in */pack.toml; do echo "${f%/pack.toml}"; done)
     # shellcheck disable=SC2086
-    pack=${NOVELER_PACK:-$(choose "Style pack" light-novel $packs)}
+    pack=${NOVELER_PACK:-$(choose "Style pack" general $packs)}
     mode=${NOVELER_MODE:-$(choose "Writing mode (ai: AI writes, you review / human: you write, AI reviews)" ai ai human)}
     case $mode in ai | human) ;; *) die "mode must be ai or human: $mode" ;; esac
     flow=${FLOW:-$(choose "Chapter flow (standard: one combined review per chapter / full: every review step / lite: fewest steps, fewest tokens)" standard standard full lite)}
@@ -259,7 +259,7 @@ cmd_update() {
   if confirm "Reinstall $repo/.agents/ from the latest version? (Your edits outside roles.toml will be lost)"; then
     cp "$repo/.agents/roles.toml" "$repo/.roles.toml.bak"
     rm -rf "$repo/.agents"
-    bash "$SRC/harness/scripts/install.sh" "$repo" "${pack:-light-novel}"
+    bash "$SRC/harness/scripts/install.sh" "$repo" "${pack:-general}"
     mv "$repo/.roles.toml.bak" "$repo/.agents/roles.toml"
   fi
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ハーネスを原稿のリポジトリに入れる。
-#   install.sh <原稿のリポジトリ> [文体パック]   既定のパックはlight-novel（packs/ のフォルダ名。general なども選べる）
+#   install.sh <原稿のリポジトリ> [文体パック]   既定のパックは general（packs/ のフォルダ名。light-novel なども選べる）
 #
 # 1. <リポジトリ>/.agents/ にハーネスを写す（もうあれば止まる）
 # 2. 文体パックを.agents/のskills・rules・agentsにつなぐ（link-pack.sh）
@@ -12,7 +12,7 @@
 #    Codexとpiは、AGENTS.mdと.agents/skills/をそのまま読むので、リンクは要らない
 set -euo pipefail
 repo=${1:?usage: install.sh <manuscript-repo> [style-pack]}
-pack=${2:-light-novel}
+pack=${2:-general}
 src=$(cd "$(dirname "$0")/.." && pwd)
 repo=$(cd "$repo" && pwd)
 

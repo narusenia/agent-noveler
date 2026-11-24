@@ -17,7 +17,7 @@ r=$tmp/novels
 [ -d "$r/.git" ] || fail "git init"
 grep -q '^write = "human"' "$r/.agents/roles.toml" || fail "mode write"
 grep -q '^flow = "standard"' "$r/.agents/roles.toml" || fail "default flow"
-grep -q '^pack = "light-novel"' "$r/.agents/roles.toml" || fail "style pack"
+grep -q '^pack = "general"' "$r/.agents/roles.toml" || fail "style pack"
 [ -f "$r/pnpm-workspace.yaml" ] || fail "pnpm-workspace.yaml"
 for f in syuki.yml book.config.js vivliostyle.config.js package.json .gitignore plot.md; do
   [ -f "$r/first/$f" ] || fail "first/$f"

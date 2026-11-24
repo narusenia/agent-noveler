@@ -1,1 +1,0 @@
-../packs/light-novel/rules/light-novel.md

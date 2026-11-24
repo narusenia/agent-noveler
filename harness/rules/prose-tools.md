@@ -1,1 +1,1 @@
-../packs/light-novel/rules/prose-tools.md
+../packs/general/rules/prose-tools.md

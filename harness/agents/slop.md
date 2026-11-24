@@ -1,1 +1,0 @@
-../packs/light-novel/agents/slop.md
