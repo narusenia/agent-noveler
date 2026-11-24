@@ -6,6 +6,16 @@ AI エージェントに小説の作業を分担させるための道具です�
 bash scripts/install.sh ~/novels [文体パック]
 ```
 
+`~/novels/.agents/` にハーネスが写り、各ツールが読む場所からリンクが張られます。`AGENTS.md` が無ければ雛形も置かれるので、【】の所を書き換えてください。
+
+| ツール | 読むもの |
+| --- | --- |
+| Claude Code | `.claude/agents`・`.claude/skills`・`.claude/rules` と `CLAUDE.md`（どれも `.agents/` と `AGENTS.md` へのリンク） |
+| Codex | `AGENTS.md` と `.agents/skills/` |
+| pi | `AGENTS.md` と `.agents/skills/` |
+| OpenCode | `AGENTS.md`、`.agents/skills/`、`.opencode/agents`（リンク）。決まりは `opencode.json` の `instructions` に書く |
+| Antigravity（agy） | `GEMINI.md`（リンク）と `.agents/` |
+
 | フォルダ | 中身 |
 | --- | --- |
 | `AGENTS.md` | 原稿のリポジトリに置く雛形。作業の分担と、一章を書くときの流れ |

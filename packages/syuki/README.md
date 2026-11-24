@@ -11,6 +11,8 @@ syuki check                    # 台帳と本文の照合。違反があれば�
 syuki render                   # 台帳から人物・設定・地図などの Markdown を作る
 ```
 
+入れずに試すなら `uvx --from "git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki" syuki check` です。
+
 どのコマンドも `--json` で JSON を出します。台帳の書き方は `harness/skills/syuki/references/schema.md`、設計の考え方は `docs/design.md` にあります。動く見本は `examples/sample-work/` です。
 
 開発: `uv run --extra ja pytest`
