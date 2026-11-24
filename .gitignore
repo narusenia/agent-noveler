@@ -11,3 +11,6 @@ __pycache__/
 
 # shosai e2e の書き出し
 packages/shosai/e2e/out/
+
+# shosai の e2e が途中で止まったときの作品
+examples/zz-*/
