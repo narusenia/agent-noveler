@@ -46,10 +46,31 @@ VOL=vol2 pnpm build         # 巻を選ぶ（既定は vol1）
 
 ## 入れ方
 
-| 道具 | 包みの名前 | 入れ方 |
-| --- | --- | --- |
-| shosai | `@narusenia/shosai`（npm） | `npx @narusenia/shosai ~/novels`（作品のフォルダが並んだフォルダを渡す） |
-| syuki | `syuki`（PyPI） | まだ PyPI に公開していません。今はこのリポジトリから `uv tool install ./packages/syuki` で入れてください |
+先に [git](https://git-scm.com/downloads)、[uv](https://docs.astral.sh/uv/)、[Node.js](https://nodejs.org/) 22 以上を入れておきます。次の一行で、`noveler` コマンドと syuki が入ります。
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/narusenia/agent-noveler/main/install.sh | bash
+```
+
+- 道具（Node.js・pnpm・uv・gum）を [mise](https://mise.jdx.dev) で揃えるときは、末尾を `| bash -s -- --tools mise` にします。mise 自体は先に入れておきます。
+- 本体は `~/.local/share/agent-noveler` に入り、`noveler` は `~/.local/bin` に置かれます（`~/.local/bin` を PATH に足してください）。
+- 見た目を整える [gum](https://github.com/charmbracelet/gum) は noveler のフォルダに自動で入ります。システムには入れません。
+
+| コマンド | すること |
+| --- | --- |
+| `noveler new ~/novels` | 原稿のリポジトリを作る。ハーネスを入れ、文体パックと書き方（AI が書く／自分で書く）を選び、最初の作品を足す |
+| `noveler add <作品名>` | 作品のフォルダを足す。題と作者名を聞き、台帳と PDF の設定を置く |
+| `noveler open` | 書斎（shosai）で原稿のリポジトリを開く |
+| `noveler build [作品] [巻]` | PDF を作る。`--epub` で EPUB |
+| `noveler update` | noveler と syuki を最新にする。`.agents/` の入れ直しは確認してから |
+| `noveler doctor` | 道具の有無と版、各作品の `syuki check` の結果を出す |
+
+道具を一つずつ入れることもできます。
+
+| 道具 | 入れ方 |
+| --- | --- |
+| shosai | `npx @narusenia/shosai ~/novels`（作品のフォルダが並んだフォルダを渡す） |
+| syuki | `uv tool install "syuki[ja] @ git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki"`（入れずに試すなら `uvx --from "git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki" syuki check`） |
 
 npx で起動した書斎は、PATH の `syuki` を呼んで台帳を出します。syuki を入れていなくても、本文を読む、赤を入れる、組版を見る、はそのまま使えます。
 
