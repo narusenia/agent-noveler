@@ -13,17 +13,64 @@ AI と一緒に日本語の小説を書くための道具一式です。原稿�
 | `harness/` | エージェントの道具。役（書く、校正する、批評するなど）の手順書、決まり、スキル、役ごとの担い手を決める仕組み、文体パック | MIT |
 | `examples/sample-work/` | 見本作品「灯台の鍵」（序章と第一章）。syuki と shosai がそのまま動く | MIT |
 
-## 試す
+## 入れ方
 
-必要なもの: [uv](https://docs.astral.sh/uv/)、Node.js 22、pnpm 11。
+先に [git](https://git-scm.com/downloads)、[uv](https://docs.astral.sh/uv/)、[Node.js](https://nodejs.org/) 22 以上を入れておきます。次の一行で、`noveler` コマンドと syuki が入ります。
 
 ```sh
+curl -fsSL https://raw.githubusercontent.com/narusenia/agent-noveler/main/install.sh | bash
+```
+
+- 途中で、道具（Node.js・pnpm・uv・gum）の管理を mise か plain から選びます。plain は、自分で入れた道具をそのまま使います。
+- [mise](https://mise.jdx.dev) で揃えるときは、末尾を `| bash -s -- --tools mise` にすると聞かれずに進みます。mise 自体は先に入れておきます。
+- 本体は `~/.local/share/agent-noveler` に入り、`noveler` は `~/.local/bin` に置かれます（`~/.local/bin` を PATH に足してください）。
+- 見た目を整える [gum](https://github.com/charmbracelet/gum) は noveler のフォルダに自動で入ります。システムには入りません。
+
+## 使い方
+
+```sh
+noveler new ~/novels      # 原稿のリポジトリを作り、最初の作品を足す
+cd ~/novels
+noveler open              # 書斎で開く
+noveler build             # PDF に書き出す
+```
+
+本文は作品のフォルダの `manuscript/<巻>/<章>.kym.txt` に書きます。
+
+| コマンド | すること |
+| --- | --- |
+| `noveler new [フォルダ]` | 原稿のリポジトリを作る。ハーネスを入れ、文体パックと書き方（AI が書く／自分で書く）を選び、最初の作品を足す |
+| `noveler add [作品名]` | 作品のフォルダを足す。題と作者名を聞き、台帳と PDF の設定を置く |
+| `noveler open` | 書斎（shosai）で原稿のリポジトリを開く |
+| `noveler build [作品] [巻]` | PDF を作る。`--epub` で EPUB |
+| `noveler update` | noveler と syuki を最新にする。`.agents/` の入れ直しは確認してから |
+| `noveler doctor` | 道具の有無と版、各作品の `syuki check` の結果を表示する |
+| `noveler help` | コマンドの一覧 |
+
+`-y`（`--yes`）を付けると、聞かずに既定値で進みます。
+
+### 道具を一つずつ入れる
+
+| 道具 | 入れ方 |
+| --- | --- |
+| shosai | `npx @narusenia/shosai ~/novels`（作品のフォルダが並んだフォルダを渡す） |
+| syuki | `uv tool install "syuki[ja] @ git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki"`（入れずに試すなら `uvx --from "git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki" syuki check`） |
+
+npx で起動した書斎は、PATH の `syuki` を呼んで台帳を表示します。syuki が無くても、本文を読む、赤を入れる、組版を見る、はそのまま使えます。
+
+## 見本で試す
+
+このリポジトリを手元に置けば、見本作品で書斎と syuki を試せます。必要なもの: [uv](https://docs.astral.sh/uv/)、Node.js 22、pnpm 11。
+
+```sh
+git clone https://github.com/narusenia/agent-noveler
+cd agent-noveler
 pnpm install
 pnpm review        # 書斎が http://localhost:13002 で開き、見本作品が本棚に並ぶ
 pnpm syuki check --work examples/sample-work   # 台帳と本文を照らす（違反 0 件）
 ```
 
-自分の原稿を書斎で開くときは、作品のフォルダが並んだフォルダを `SHOSAI_WORKS` で渡します。
+自分の原稿を開くときは、作品のフォルダが並んだフォルダを `SHOSAI_WORKS` で渡します。
 
 ```sh
 SHOSAI_WORKS=~/novels pnpm review
@@ -33,7 +80,9 @@ SHOSAI_WORKS=~/novels pnpm review
 
 ## PDF・EPUB に書き出す
 
-本の形への書き出しは [Vivliostyle](https://vivliostyle.org/ja/) で行います。書斎の組版の見た目と同じ `book.config.js` を読むので、画面で確かめた組みがそのまま PDF になります。
+本の形への書き出しは [Vivliostyle](https://vivliostyle.org/ja/) で行います。書斎の組版の見た目と同じ `book.config.js` を読むので、画面で確かめた組みがそのまま PDF になります。`noveler add` で足した作品には書き出しの設定が入っているので、`noveler build` で書き出せます。
+
+見本作品では、次のコマンドで書き出せます。
 
 ```sh
 cd examples/sample-work
@@ -42,44 +91,14 @@ pnpm build:epub             # sample-work_vol1.epub
 VOL=vol2 pnpm build         # 巻を選ぶ（既定は vol1）
 ```
 
-`pnpm build` は、まず [kakuyomu-vfm](https://www.npmjs.com/package/@narusenia/kakuyomu-vfm) で `.kym.txt` を Markdown（`.kym.md`）に変え、次に `vivliostyle build` で組みます。自分の作品で使うときは、見本の `package.json` の `scripts` と依存、`vivliostyle.config.js` を作品のフォルダに写してください。
-
-## 入れ方
-
-先に [git](https://git-scm.com/downloads)、[uv](https://docs.astral.sh/uv/)、[Node.js](https://nodejs.org/) 22 以上を入れておきます。次の一行で、`noveler` コマンドと syuki が入ります。
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/narusenia/agent-noveler/main/install.sh | bash
-```
-
-- 道具（Node.js・pnpm・uv・gum）を [mise](https://mise.jdx.dev) で揃えるときは、末尾を `| bash -s -- --tools mise` にします。mise 自体は先に入れておきます。
-- 本体は `~/.local/share/agent-noveler` に入り、`noveler` は `~/.local/bin` に置かれます（`~/.local/bin` を PATH に足してください）。
-- 見た目を整える [gum](https://github.com/charmbracelet/gum) は noveler のフォルダに自動で入ります。システムには入れません。
-
-| コマンド | すること |
-| --- | --- |
-| `noveler new ~/novels` | 原稿のリポジトリを作る。ハーネスを入れ、文体パックと書き方（AI が書く／自分で書く）を選び、最初の作品を足す |
-| `noveler add <作品名>` | 作品のフォルダを足す。題と作者名を聞き、台帳と PDF の設定を置く |
-| `noveler open` | 書斎（shosai）で原稿のリポジトリを開く |
-| `noveler build [作品] [巻]` | PDF を作る。`--epub` で EPUB |
-| `noveler update` | noveler と syuki を最新にする。`.agents/` の入れ直しは確認してから |
-| `noveler doctor` | 道具の有無と版、各作品の `syuki check` の結果を出す |
-
-道具を一つずつ入れることもできます。
-
-| 道具 | 入れ方 |
-| --- | --- |
-| shosai | `npx @narusenia/shosai ~/novels`（作品のフォルダが並んだフォルダを渡す） |
-| syuki | `uv tool install "syuki[ja] @ git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki"`（入れずに試すなら `uvx --from "git+https://github.com/narusenia/agent-noveler#subdirectory=packages/syuki" syuki check`） |
-
-npx で起動した書斎は、PATH の `syuki` を呼んで台帳を出します。syuki を入れていなくても、本文を読む、赤を入れる、組版を見る、はそのまま使えます。
+`pnpm build` は、まず [kakuyomu-vfm](https://www.npmjs.com/package/@narusenia/kakuyomu-vfm) で `.kym.txt` を Markdown（`.kym.md`）に変え、次に `vivliostyle build` で組みます。
 
 ## エージェントの道具（harness）
 
-原稿のリポジトリに入れて使います。
+`noveler new` で作った原稿のリポジトリには入っています。noveler を使わずに入れるときは、このリポジトリから次のように実行します。
 
 ```sh
-bash harness/scripts/install.sh ~/novels            # 文体パックは light-novel
+bash harness/scripts/install.sh ~/novels [文体パック]   # 文体パックを省くと light-novel
 ```
 
 `~/novels/.agents/` にハーネスが写り、各ツールが読む場所からリンクが張られます。`AGENTS.md` が無ければ雛形も置かれるので、【】の所を書き換えてください。
@@ -92,7 +111,7 @@ bash harness/scripts/install.sh ~/novels            # 文体パックは light-n
 | OpenCode | `AGENTS.md`、`.agents/skills/`、`.opencode/agents`（リンク）。決まりは `opencode.json` の `instructions` に書く |
 | Antigravity（agy） | `GEMINI.md`（リンク）と `.agents/` |
 
-役ごとに誰に頼むか（Claude のサブエージェント、herdr のペインの agy、OpenCode）とモデルは、`.agents/roles.toml` で決めます。既定はすべて Claude Code のサブエージェントです。ほかのツールを使う例は、`roles.toml` の末尾に注釈で書いてあります。
+役ごとに誰に頼むか（Claude のサブエージェント、herdr のペインの agy、OpenCode など）とモデルは、`.agents/roles.toml` で決めます。既定はすべて Claude Code のサブエージェントです。ほかのツールを使う例は、`roles.toml` の末尾に注釈で書いてあります。
 
 `agy -p`（print モード）は、ほかのエージェントやスクリプトから呼ぶと利用規約に触れることがあります。既定では、どの道具も呼びません。規約を自分で確かめたうえで使う場合だけ、`roles.toml` の `[agy] allow_print` を `true` にしてください。
 
