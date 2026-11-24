@@ -1,6 +1,6 @@
 # vol1　人物の状態表
 
-> 生成物。手で直さない（正本は `ledger/` の YAML。`syuki render` で作る）。
+> 生成物です。手で直さないでください（正本は `ledger/` の YAML で、`syuki render` で作ります）。
 
 ## 1. 章末ごとの状態
 
