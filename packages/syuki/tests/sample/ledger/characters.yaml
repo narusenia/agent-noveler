@@ -1,0 +1,15 @@
+- name: ソラ
+  profile:
+    一人称: 俺。地の文も「俺」。
+  notes:
+    - 【本文仮】灯台の町に住む（第1巻第一章）。
+- name: ハル・ミナト
+  short: ハル
+  catchphrases: [せーので]
+  samples:
+    平常: 「それ、私のよ」
+  lines: [02「せーので回すわよ」]
+- name: 灯台守のじいさん
+  short: 守
+  aliases: [じいさん]
+  role: 端役

@@ -1,0 +1,4 @@
+- name: 鍵
+  aliases: [古い鍵]
+  desc: 灯台の扉の鍵。古い。
+  holder: ハル

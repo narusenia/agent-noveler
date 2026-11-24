@@ -1,0 +1,7 @@
+- id: 二人の扉
+  desc: 鍵の持ち主が二人いる
+  plan:
+    - at: "02:2"
+      do: payoff
+      note: 二人で回して開く
+  phrases: [01「それ、私のよ」]

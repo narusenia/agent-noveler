@@ -1,0 +1,9 @@
+- {at: "01:1", kind: move, what: 鍵, from: ハル, to: ソラ, src: 01「古い鍵を拾った」}
+- {at: "01:1", kind: feel, who: ソラ, to: ハル, what: 変なやつ}
+- {at: "01:1", kind: plant, what: 二人の扉, src: 01「それ、私のよ」}
+- {at: "01:2", kind: move, what: 鍵, to: 守, src: 01「鍵を棚にしまった」}
+- {at: "01:2", kind: know, who: ソラ, what: 鍵は灯台のもの}
+- {at: "02:1", kind: move, what: 鍵, from: 守, to: ソラ}
+- {at: "02:1", kind: stage, who: ハル, what: 気になる}
+- {at: "02:2", kind: know, who: [ソラ, ハル], what: 二人鍵, src: 02「二人の手でようやく回った」}
+- {at: "02:2", kind: payoff, what: 二人の扉}

@@ -1,0 +1,7 @@
+characters = "charactor.md"
+
+[pov]
+mode = "一人称"
+names = ["ソラ"]
+first_person = "俺"
+exclude = ["prologue"]

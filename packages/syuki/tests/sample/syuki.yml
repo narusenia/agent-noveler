@@ -1,0 +1,17 @@
+title: 見本
+manuscript: manuscript
+ext: .kym.txt
+volumes: [vol1]
+ledger: ledger
+style: style/profile.toml
+plots:
+  vol1: plot/vol1.md
+setting: [docs/setting.md]
+stages:
+  ハル: [他人, 気になる, 自覚]
+render:
+  characters: charactor.md
+  details: details.md
+  map: plot/map.md
+  documents: plot/documents.md
+  state: plot/{vol}-state.md

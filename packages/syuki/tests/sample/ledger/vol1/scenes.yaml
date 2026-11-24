@@ -1,0 +1,4 @@
+- {at: "01:1", day: 1, time: 夕方, place: 灯台, cast: [ソラ, ハル], summary: 灯台の下で鍵を拾う}
+- {at: "01:2", day: 2, time: 朝, place: 詰所, cast: [ソラ, 守], summary: 鍵を詰所に届ける}
+- {at: "02:1", day: 2, time: 昼, place: 詰所, cast: [ソラ, 守, ハル], summary: 手紙が届き鍵が戻る}
+- {at: "02:2", day: 2, time: 夕方, place: 灯台, cast: [ソラ, ハル], summary: 二人で扉を開ける}

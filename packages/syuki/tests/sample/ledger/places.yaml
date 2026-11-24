@@ -1,0 +1,14 @@
+places:
+  - name: 灯台
+    where: 港の端、坂の上
+    looks: 白い
+    src: [01「灯台の下で」]
+  - name: 詰所
+    aliases: [灯台守の詰所]
+    where: 灯台の坂の下
+routes:
+  - from: 灯台
+    to: 詰所
+    via: 坂を下りる
+    time: 歩いて四半刻
+    minutes: 30
