@@ -7,6 +7,8 @@
 #   agy       — herdrの隣のペインで対話で動くagy（Antigravity）。スキルherdr-agyのhand.shが送る。herdrの中でだけ動く
 #   agy-print — agy -p（printモード）で一度ずつ答えさせる。herdrが無くても動く。下の[agy] allow_print = trueのときだけ使える
 #   opencode  — OpenCode（API課金）。.agents/scripts/runners/opencode.shが送る
+# メインの会話をCodexやpiで動かすときも、この設定はそのまま使える（どちらもAGENTS.mdと.agents/skills/を読む）。
+# ただし、役をCodexやpiに頼む担い手（codex・pi）はまだ無い。claudeの役は、そのツールが手順書.agents/agents/<役>.mdを読んで自分で担う。
 # model: 担い手ごとのモデル名。書かなければ担い手の既定のモデル。claudeならsonnet・opus・haikuなど（メインの会話がAgentツールのmodelに渡す）。
 # fallback: 担い手が使えないとき（agyの利用枠切れなど）の代わり。ask.sh --fallbackで使う。
 
