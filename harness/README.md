@@ -16,7 +16,7 @@ bash scripts/install.sh ~/novels [文体パック]
 | `roles.toml` | 役ごとの担い手とモデル、本文を誰が書くか（`[mode] write`）、使う文体パック |
 | `packs/` | 文体パック。今は `light-novel` だけ |
 
-`skills/`・`rules/`・`agents/` の中で `packs/` を指しているリンクは、`link-pack.sh` がつないだ文体パックの中身です。パックを替えるときは `bash scripts/link-pack.sh <名前>` を回し、`roles.toml` の `[style] pack` も同じ名前にします。
+`skills/`・`rules/`・`agents/` の中で `packs/` を指しているリンクは、`link-pack.sh` がつないだ文体パックの中身です。パックを替えるときは `bash scripts/link-pack.sh <名前>` を実行し、`roles.toml` の `[style] pack` も同じ名前にします。
 
 テスト: `python3 scripts/test_role.py`、`python3 scripts/test_review_add.py`
 
