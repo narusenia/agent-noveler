@@ -3,7 +3,8 @@
 # gum（PATH → このフォルダの bin/gum の順）があれば見た目を整え、無ければ素の echo/read で同じことをする。
 # 答えは環境変数でも渡せる（--yes か NOVELER_YES=1 で聞かずに既定値を使う）:
 #   NOVELER_PACK（文体パック）、NOVELER_MODE（ai|human）、NOVELER_WORK（作品のフォルダ名）、
-#   NOVELER_TITLE（題）、NOVELER_AUTHOR（作者名）、NOVELER_SYUKI（syuki の呼び方。既定は PATH の syuki）
+#   NOVELER_TITLE（題）、NOVELER_AUTHOR（作者名）、NOVELER_SYUKI（syuki の呼び方。既定は PATH の syuki）、
+#   NOVELER_LAYOUT（single|packages。--layout でも渡せる）
 set -euo pipefail
 
 # このファイルの実体の場所（~/.local/bin からのリンクをたどる）
@@ -30,9 +31,12 @@ fi
 
 YES=${NOVELER_YES:-}
 HELP=
+LAYOUT=${NOVELER_LAYOUT:-}
 args=()
+next=
 for a in "$@"; do
-  case $a in -y | --yes) YES=1 ;; -h | --help) HELP=1 ;; *) args+=("$a") ;; esac
+  if [ -n "$next" ]; then LAYOUT=$a; next=; continue; fi
+  case $a in -y | --yes) YES=1 ;; -h | --help) HELP=1 ;; --layout) next=1 ;; --layout=*) LAYOUT=${a#*=} ;; *) args+=("$a") ;; esac
 done
 set -- ${args[@]+"${args[@]}"}
 
@@ -98,6 +102,8 @@ need_repo() { find_repo || die "Run this inside a manuscript repository (a folde
 works() { local w; for w in "$1"/*/manuscript; do [ -d "$w" ] && basename "$(dirname "$w")"; done; return 0; }
 # 作品が並ぶフォルダ: 直下に作品が無く packages/*/manuscript があれば packages/、それ以外はリポジトリの根
 works_dir() { if [ -z "$(works "$1")" ] && [ -n "$(works "$1/packages")" ]; then echo "$1/packages"; else echo "$1"; fi; }
+# packages 形: packages/ があるか、pnpm-workspace.yaml が packages/* を指す
+is_packages() { [ -d "$1/packages" ] || grep -q 'packages/\*' "$1/pnpm-workspace.yaml" 2>/dev/null; }
 pnpm_cmd() { if command -v pnpm >/dev/null; then pnpm "$@"; else npx -y pnpm@11 "$@"; fi; }
 
 # ---- 道具 ----
@@ -148,7 +154,9 @@ cmd_new() {
   if [ -d "$dir/.agents" ]; then
     info "Harness already installed (.agents/). To reinstall: noveler update"
   else
-    local packs pack mode
+    local packs pack mode layout
+    layout=${LAYOUT:-$(choose "Layout: single (works at the repo root) / packages (works under packages/, for several works)" single single packages)}
+    case $layout in single | packages) ;; *) die "layout must be single or packages: $layout" ;; esac
     packs=$(ls "$SRC/harness/packs")
     # shellcheck disable=SC2086
     pack=${NOVELER_PACK:-$(choose "Style pack" light-novel $packs)}
@@ -157,6 +165,11 @@ cmd_new() {
     bash "$SRC/harness/scripts/install.sh" "$dir" "$pack"
     local r=$dir/.agents/roles.toml
     sed -e "s/^write = .*/write = \"$mode\"/" -e "s/^pack = .*/pack = \"$pack\"/" "$r" >"$r.tmp" && mv "$r.tmp" "$r"
+    if [ "$layout" = packages ]; then
+      # 雛形の AGENTS.md が書く作品の置き場所を packages/ に合わせる
+      sed -e 's|例 `mywork/`|例 `packages/mywork/`|' -e 's|--work <作品>|--work packages/<作品>|g' "$dir/AGENTS.md" >"$dir/AGENTS.md.tmp" && mv "$dir/AGENTS.md.tmp" "$dir/AGENTS.md"
+      [ -e "$dir/pnpm-workspace.yaml" ] || printf 'packages:\n  - "packages/*"\n' >"$dir/pnpm-workspace.yaml"
+    fi
   fi
   [ -e "$dir/package.json" ] || printf '{\n  "name": "%s",\n  "private": true\n}\n' "$(basename "$dir" | tr -cs 'a-z0-9-' '-' | sed 's/^-*//; s/-*$//')" >"$dir/package.json"
   [ -e "$dir/pnpm-workspace.yaml" ] || printf 'packages:\n  - "*"\n' >"$dir/pnpm-workspace.yaml"
@@ -167,7 +180,9 @@ cmd_new() {
   fi
   (cd "$dir" && cmd_add "${NOVELER_WORK:-}")
   title "Created manuscript repo at $dir"
-  info "Next: cd $dir, write <work>/manuscript/vol1/01.kym.txt, then run noveler open"
+  local p=
+  is_packages "$dir" && p=packages/
+  info "Next: cd $dir, write ${p}<work>/manuscript/vol1/01.kym.txt, then run noveler open"
 }
 
 cmd_add() {
@@ -177,7 +192,13 @@ cmd_add() {
   [ -n "$name" ] || name=$(ask "Work folder name (letters, digits, - and _)" my-novel)
   case $name in "" | *[!A-Za-z0-9_-]*) die "Folder name may use only letters, digits, - and _: $name" ;; esac
   w=$repo/$name
+  is_packages "$repo" && w=$repo/packages/$name
   [ -e "$w/book.config.js" ] && die "Already exists: $w"
+  # 作品の package.json の名前はフォルダ名。ワークスペースの別の package.json と同じ名前なら止める
+  local p
+  for p in "$repo/package.json" "$repo"/*/package.json "$repo"/packages/*/package.json; do
+    grep -qF "\"name\": \"$name\"" "$p" 2>/dev/null && die "Package name \"$name\" is already used by $p. Choose another folder name"
+  done
   t=${NOVELER_TITLE:-$(ask "Title" "$name")}
   author=${NOVELER_AUTHOR:-$(ask "Author name" 作者)}
   title "Adding work: $name"
@@ -267,6 +288,7 @@ cmd_help() {
 noveler — write novels with AI agents (agent-noveler)
 
   noveler new [folder]         Create a manuscript repository (git init, harness, first work)
+      --layout single|packages   single: works at the repo root / packages: works under packages/
   noveler add [work]           Add a work folder (syuki ledger, PDF config, manuscript/vol1/)
   noveler open [folder]        Open the works in the reading desk (shosai)
   noveler build [work] [vol]   Build a PDF (--epub for EPUB)

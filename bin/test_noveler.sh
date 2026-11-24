@@ -34,3 +34,20 @@ node --check "$r/first/book.config.js" || fail "book.config.js syntax"
 grep -q 'first: ok' "$tmp/doctor.txt" || fail "doctor first"
 grep -q 'second: ok' "$tmp/doctor.txt" || fail "doctor second"
 echo "ok: noveler new/add/doctor"
+
+# packages 形: 作品は packages/<作品>/
+rm -rf "$tmp/shelf"
+NOVELER_WORK=one "$noveler" new --layout packages "$tmp/shelf"
+r=$tmp/shelf
+grep -q '"packages/\*"' "$r/pnpm-workspace.yaml" || fail "packages workspace"
+grep -q '"name": "shelf"' "$r/package.json" || fail "root package.json"
+grep -q '例 `packages/mywork/`' "$r/AGENTS.md" || fail "AGENTS.md work path"
+[ -f "$r/packages/one/book.config.js" ] || fail "packages/one"
+[ ! -e "$r/one" ] || fail "work at root in packages layout"
+(cd "$r" && "$noveler" add two)
+[ -f "$r/packages/two/book.config.js" ] || fail "add packages/two"
+(cd "$r" && "$noveler" add shelf) 2>/dev/null && fail "package name clash should stop"
+(cd "$r" && "$noveler" doctor) | tee "$tmp/doctor2.txt"
+grep -q 'one: ok' "$tmp/doctor2.txt" || fail "doctor one"
+grep -q 'two: ok' "$tmp/doctor2.txt" || fail "doctor two"
+echo "ok: noveler packages layout"
