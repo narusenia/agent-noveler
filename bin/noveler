@@ -160,7 +160,7 @@ cmd_new() {
   [ -e "$dir/.gitignore" ] || printf 'node_modules/\n.DS_Store\n' >"$dir/.gitignore"
   if [ "$TOOLS" = mise ] && [ ! -e "$dir/mise.toml" ]; then
     printf '[tools]\nnode = "22"\npnpm = "11"\nuv = "latest"\ngum = "%s"\n' "$GUM_VERSION" >"$dir/mise.toml"
-    (cd "$dir" && mise trust -q && spin "mise install" mise install)
+    (cd "$dir" && mise trust -q && spin "mise install" mise install node pnpm uv gum)
   fi
   (cd "$dir" && cmd_add "${NOVELER_WORK:-}")
   title "できました"
@@ -224,7 +224,7 @@ cmd_update() {
   cmd_setup
   local repo pack
   repo=$(find_repo) || return 0
-  if [ "$TOOLS" = mise ] && [ -f "$repo/mise.toml" ]; then (cd "$repo" && spin "mise install" mise install); fi
+  if [ "$TOOLS" = mise ] && [ -f "$repo/mise.toml" ]; then (cd "$repo" && spin "mise install" mise install node pnpm uv gum); fi
   pack=$(sed -n 's/^pack = "\(.*\)"/\1/p' "$repo/.agents/roles.toml" | head -1)
   if confirm "$repo/.agents/ を最新に入れ直しますか（roles.toml 以外の手直しは消えます）"; then
     cp "$repo/.agents/roles.toml" "$repo/.roles.toml.bak"
