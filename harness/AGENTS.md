@@ -89,7 +89,7 @@
 
 - `standard` の 7: critic の依頼文に「slop の七つの層（`.agents/agents/slop.md`）と、文体パックの見る役（`pack.toml` の `[provides] agents`。パックによっては無い）の観点も見る」と書き、見直しを一回にまとめる。
 - `lite` で省いた段（slop、パックの見る役、spar、auditor、初見読み、proofreader）は、`syuki lint` と `syuki check` で代える。
-- 段にかかわらず、`syuki check` の違反が 0 になり、writer が `syuki lint` の指摘を見終えるまでは、LLM の見る役を回さない。
+- 段にかかわらず、`syuki check` の違反が 0 になり（最後の行が `0 violations, …`）、writer が `syuki lint` の指摘を見終えるまでは、LLM の見る役を回さない。
 - 段にかかわらず、見る役は plot 全体や前の章を丸ごと読まない。先に `syuki brief 章:場面` と対象の章を読み、要るときだけ `syuki search` などで広げる。
 
 ### 添削モードの流れ（`write = "human"`）

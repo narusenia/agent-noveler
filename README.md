@@ -147,7 +147,7 @@ git clone https://github.com/narusenia/agent-noveler
 cd agent-noveler
 pnpm install
 pnpm review        # 書斎が http://localhost:13002 で開き、見本作品が本棚に並ぶ
-pnpm syuki check --work examples/sample-work   # 台帳と本文を照らす（違反 0 件）
+pnpm syuki check --work examples/sample-work   # 台帳と本文を照らす（0 violations）
 ```
 
 PDFとEPUBは[Vivliostyle](https://vivliostyle.org/ja/)で組みます。書斎の組版と同じ`book.config.js`を読むので、画面で確かめた組みがそのままPDFになります。

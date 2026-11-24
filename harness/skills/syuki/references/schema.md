@@ -106,7 +106,7 @@ routes:
   fact: 古い鍵は灯台の地下の扉を開ける
   reader: hinted          # 読者への開き方。disclosed（開示）・hinted（示唆）・hidden（【秘匿】）
   reader_note: （第一章）。扉の先は【秘匿】   # 任意。reader の補足。表示では reader の言い方のすぐあとにつなぐ
-  markers: [地下の扉]     # 目印の語。知る前の人物の台詞・語りに出たら「確認」
+  markers: [地下の扉]     # 目印の語。知る前の人物の台詞・語りに出たら check の confirm
   known: [灯台守]         # はじめから知っている人
   note: 回収は第五章
 ```
@@ -154,7 +154,7 @@ routes:
 ```
 
 - `day` は作中の日（整数。一日目＝1）。`time` は `"HH:MM"` か 夜明け・日の出・朝・午前・昼前・昼・昼休み・昼すぎ・午後・放課後・夕方・日暮れ・晩・夜・夜中。それ以外の言い方は日の順だけを見る。
-- 本文の場面ごとに一行。本文の場面の数と合わなければ違反。表に無い章は「確認」。
+- 本文の場面ごとに一行。本文の場面の数と合わなければ violation。表に無い章は confirm。
 - `card: 2` でカードの番号を場面の番号と別にできる。
 - 人物の居場所は、出ている最後の場面の `place` から出す。
 
@@ -189,7 +189,7 @@ writer が書く。`## 3` の節があれば `syuki brief 04:3` はその節だ�
 ```python
 def check(work, report):
     # work: syuki.work.Work（chapters・scenes・events・led など）
-    report.add("my_check", "中身", where="manuscript/vol1/04.kym.txt:12", confirm=False)  # confirm=True で「確認」
+    report.add("my_check", "中身", where="manuscript/vol1/04.kym.txt:12", confirm=False)  # confirm=True で confirm の行
 ```
 
 種類（第一引数）は英語の短い名前にする。`syuki check --json` の `level` は violation（違反）か confirm（確認）、`kind` は lost_anchor・unknown_name などの英語の名前。

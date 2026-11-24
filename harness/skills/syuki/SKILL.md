@@ -34,7 +34,7 @@ syuki <コマンド> --work <作品> [--json]  # ほかの場所から呼ぶ
 
 1. 場面の表（`ledger/<巻>/scenes.yaml`）に場面ごとの一行を足す。本文の場面転換の数と合わせる。
 2. 出来事を記録する。YAML を直接書くか `syuki add know --at 01:4 --who ソラ --what 地下の扉 --src '01「地下の扉を見てみろ」'`（種類は know・feel・move・plant・hint・payoff・stage。知る・気持ち・移る・置く・匂わせる・回収・段階にあたる）伏線の plant・hint・payoff にも `--src` を付けると、`threads` と shosai が本文の場所を引ける。
-3. `syuki check` — 違反があれば終了コード 1。「確認」は違反に数えない（登録していない制度・役職・施設らしい語、知る前の人物が秘密の目印の語を口にした所など）。未登録語の照合は sudachipy が要る（`syuki[ja]` で入れる）。無ければ飛ばして知らせる。
+3. `syuki check` — `violation` の行があれば終了コード 1。最後の行は `N violations, N to confirm`。`confirm` の行は違反に数えない（登録していない制度・役職・施設らしい語、知る前の人物が秘密の目印の語を口にした所など）。未登録語の照合は sudachipy が要る（`syuki[ja]` で入れる）。無ければ飛ばして `note:` の行で知らせる。
 4. `syuki lint [章…] [--voice]` — 文体パックの check_style（`.agents/skills/<パック>/scripts/`。パックは roles.toml の `[style] pack`。`--profile` に `style/profile.toml`）と keep_check を章ごとに回し、同じ巻のほかの章より出すぎた語の並び（上位五つ、判断）も出す。読み方は `.agents/rules/prose-tools.md`。
 5. `syuki render` — 生成物を作り直す。
 
@@ -43,14 +43,14 @@ syuki <コマンド> --work <作品> [--json]  # ほかの場所から呼ぶ
 - `syuki impact [git の範囲]` — 本文の差分（既定は HEAD と作業中の本文）から、変えた場面、迷子になった引用、変えた場面の出来事、それに頼っている後ろの出来事を挙げる。迷子があれば終了コード 1。引用（`章「本文の字」`）を今の本文に合わせて直す。
 - `syuki style contrast [--dry-run]` — shosai の作者の赤（`review/<巻>.json` の applied・done、地の文）から、今の本文と赤の前の段落の対を、声なしの文が減った順に `style/samples/contrast-candidates.md` へ足す。足した ID と、`contrast.md` に採用済みの ID は飛ばす。判断の材料で、作者が選んだ組を `contrast.md` に移す（spar が送るのは `contrast.md` だけ）。
 - `syuki style excess 章（巻が二つ以上なら vol1/04） [--base 03,04] [--top 20]` — 章で基準の章（既定は同じ巻のほかの章）より出すぎた語の並び。Sudachi の原形の 1〜3 語を事前分布つきの対数オッズ（z）で比べる。台帳の人物・用語・場所・持ち物の名前は外し、名詞だけの並びは重みを半分にする。口癖になりかけの言い回しや、章の語りの偏り（「言う」「俺が」の多さなど）を見る材料。
-- `syuki style endings [章…]` — 話者の決まった台詞の文末を人物ごとに数え、台帳の口調サンプル（`samples` の「」）の文末と比べる。見本に無い文末の割合と上位、見本にあって使っていない文末を出す。話者は盲検の答えの表 `style/speakers/<巻>/<章>.json`（`{"行番号": "話者"}`）と、同じ行の「と〇〇が言った」から決め、決まらない台詞は数えない。表は本文を直すと行がずれるので、大きく直したら作り直す。
+- `syuki style endings [章…]` — 話者の決まった台詞の文末を人物ごとに数え、台帳の口調サンプル（`samples` の「」）の文末と比べる。見本に無い文末の割合と上位（`off-sample endings`）、見本にあって使っていない文末（`--json` の `sample_unused`）を出す。話者は盲検の答えの表 `style/speakers/<巻>/<章>.json`（`{"行番号": "話者"}`）と、同じ行の「と〇〇が言った」から決め、決まらない台詞は数えない。表は本文を直すと行がずれるので、大きく直したら作り直す。
 - `syuki style heat 章 [--json]` — check_style の判定（`--paragraphs`）で、段落ごとの声・声なし区間（始まりの行と文の数）・落としを、章のファイル（manuscript/ からのパス）と行番号（frontmatter を含む 1 始まり）つきで出す。shosai の Reader が「声の色」で読む。判定は check_style が正本で、syuki は複製しない。
 
 ## 作者に確かめる
 
 - `syuki ask add "質問" [--at 04:3] [--settle "答え"] [--quiet]`（`--settle` で足してすぐ決着、`--quiet` で足した ID だけを出す。ID を拾うときは `--quiet` の出力を使う。質問文を grep しない）
 - `syuki ask list [--all] [--questions]`（既定は【本文仮】の確定待ちも出る。`--questions` で作者への問いだけ）、`syuki ask settle Q-003 "答え"`。
-- `syuki stages` — 段階を追う人物ごとの章末の段階と、しばらく出ていない人物。
+- `syuki stages` — 段階を追う人物ごとの章末の段階と、しばらく出ていない人物（`absent for N+ chapters:`）。
 
 ## 新しい作品
 
