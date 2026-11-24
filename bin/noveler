@@ -165,7 +165,7 @@ cmd_new() {
   fi
   (cd "$dir" && cmd_add "${NOVELER_WORK:-}")
   title "できました"
-  info "次: cd $dir で本文を manuscript/vol1/01.kym.txt に書き、noveler open で書斎を開く"
+  info "次: cd $dir で本文を <作品>/manuscript/vol1/01.kym.txt に書き、noveler open で書斎を開く"
 }
 
 cmd_add() {
