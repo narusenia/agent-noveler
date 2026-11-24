@@ -5,10 +5,10 @@
   "license": "AGPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/narusenia/shosai.git",
+    "url": "git+https://github.com/narusenia/agent-noveler.git",
     "directory": "packages/shosai"
   },
-  "homepage": "https://github.com/narusenia/shosai#readme",
+  "homepage": "https://github.com/narusenia/agent-noveler#readme",
   "type": "module",
   "bin": {
     "shosai": "bin/shosai.mjs"
