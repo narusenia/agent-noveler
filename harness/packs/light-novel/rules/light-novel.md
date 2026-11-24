@@ -1,3 +1,8 @@
+---
+trigger: always_on
+description: light-novel パックを使うときの決まり（lint、会話と感情、口調）
+---
+
 # light-novel パックを使うときの決まり
 
 light-novel パックを使うときは、次を守る。
