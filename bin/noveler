@@ -96,6 +96,8 @@ find_repo() {
 need_repo() { find_repo || die "Run this inside a manuscript repository (a folder with .agents/). To create one: noveler new"; }
 # 作品 = manuscript/ を持つ直下のフォルダ
 works() { local w; for w in "$1"/*/manuscript; do [ -d "$w" ] && basename "$(dirname "$w")"; done; return 0; }
+# 作品が並ぶフォルダ: 直下に作品が無く packages/*/manuscript があれば packages/、それ以外はリポジトリの根
+works_dir() { if [ -z "$(works "$1")" ] && [ -n "$(works "$1/packages")" ]; then echo "$1/packages"; else echo "$1"; fi; }
 pnpm_cmd() { if command -v pnpm >/dev/null; then pnpm "$@"; else npx -y pnpm@11 "$@"; fi; }
 
 # ---- 道具 ----
@@ -198,25 +200,28 @@ cmd_add() {
 }
 
 cmd_open() {
-  local repo
-  repo=$(need_repo)
-  npx -y @narusenia/shosai "$repo"
+  local dir=${1:-}
+  if [ -n "$dir" ]; then dir=$(cd "$dir" && pwd) || die "No such folder: $1"; else dir=$(works_dir "$(need_repo)"); fi
+  # 原稿のリポジトリや $SRC の package.json（devEngines など）に npx・pnpm が引っかからないよう、中立のフォルダから起動する
+  cd "${TMPDIR:-/tmp}"
+  if command -v pnpm >/dev/null; then pnpm dlx @narusenia/shosai "$dir"; else npx -y @narusenia/shosai "$dir"; fi
 }
 
 cmd_build() {
-  local repo work vol script=build ws=() a pos=()
+  local repo wd work vol script=build ws=() a pos=()
   repo=$(need_repo)
+  wd=$(works_dir "$repo")
   for a in "$@"; do case $a in --epub) script=build:epub ;; *) pos+=("$a") ;; esac; done
   work=${pos[0]:-}
   vol=${pos[1]:-vol1}
   if [ -z "$work" ]; then
-    while IFS= read -r a; do ws+=("$a"); done < <(works "$repo")
+    while IFS= read -r a; do ws+=("$a"); done < <(works "$wd")
     [ ${#ws[@]} -gt 0 ] || die "No works found. Add one with noveler add"
     work=$(choose "Which work to build" "${ws[0]}" "${ws[@]}")
   fi
-  [ -f "$repo/$work/package.json" ] || die "No such work: $work"
+  [ -f "$wd/$work/package.json" ] || die "No such work: $work"
   [ -d "$repo/node_modules" ] || (cd "$repo" && spin "Installing dependencies" pnpm_cmd install)
-  (cd "$repo/$work" && VOL=$vol pnpm_cmd run "$script")
+  (cd "$wd/$work" && VOL=$vol pnpm_cmd run "$script")
 }
 
 cmd_update() {
@@ -236,7 +241,7 @@ cmd_update() {
 }
 
 cmd_doctor() {
-  local t v repo w fail=0
+  local t v repo wd w fail=0
   title "Tools (tool manager: ${TOOLS})"
   for t in git uv node pnpm gum syuki; do
     if [ $t = gum ] && ! command -v gum >/dev/null && [ -x "$SRC/bin/gum" ]; then v="$("$SRC/bin/gum" --version 2>&1 | head -1) ($SRC/bin/gum)"
@@ -249,9 +254,10 @@ cmd_doctor() {
   printf '  %-6s %s\n' noveler "$SRC"
   repo=$(find_repo) || { info "Not in a manuscript repository, skipped syuki check"; return 0; }
   title "syuki check ($repo)"
-  for w in $(works "$repo"); do
-    [ -f "$repo/$w/syuki.yml" ] || continue
-    if "${SYUKI[@]}" check --work "$repo/$w" >/dev/null 2>&1; then echo "  $w: ok"; else echo "  $w: issues found (details: syuki check --work $w)"; fail=1; fi
+  wd=$(works_dir "$repo")
+  for w in $(works "$wd"); do
+    [ -f "$wd/$w/syuki.yml" ] || continue
+    if "${SYUKI[@]}" check --work "$wd/$w" >/dev/null 2>&1; then echo "  $w: ok"; else echo "  $w: issues found (details: syuki check --work $w)"; fail=1; fi
   done
   return $fail
 }
@@ -262,7 +268,7 @@ noveler — write novels with AI agents (agent-noveler)
 
   noveler new [folder]         Create a manuscript repository (git init, harness, first work)
   noveler add [work]           Add a work folder (syuki ledger, PDF config, manuscript/vol1/)
-  noveler open                 Open the manuscript repository in the reading desk (shosai)
+  noveler open [folder]        Open the works in the reading desk (shosai)
   noveler build [work] [vol]   Build a PDF (--epub for EPUB)
   noveler update               Update noveler and syuki, then reinstall .agents/ (asks first)
   noveler doctor               Show installed tools and versions, and syuki check results
@@ -276,7 +282,7 @@ EOF
 case ${1:-help} in
   new | create-project) shift; cmd_new "$@" ;;
   add) shift; cmd_add "$@" ;;
-  open) cmd_open ;;
+  open) shift; cmd_open "$@" ;;
   build) shift; cmd_build "$@" ;;
   update) cmd_update ;;
   doctor) cmd_doctor ;;
