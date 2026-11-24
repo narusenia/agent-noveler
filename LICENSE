@@ -1,0 +1,12 @@
+このリポジトリのライセンスは、フォルダごとに違います。
+
+- packages/shosai/  GNU Affero General Public License v3.0（packages/shosai/LICENSE）
+                    組版に使っている @vivliostyle/core が AGPL-3.0 のため。
+- packages/syuki/   MIT License（packages/syuki/LICENSE）
+- harness/          MIT License（harness/LICENSE）
+                    light-novel パックが参考にしたリポジトリとそのライセンスは
+                    harness/packs/light-novel/skills/light-novel/NOTICE にあります。
+- examples/         MIT License（examples/LICENSE）
+
+The license differs by directory: packages/shosai is AGPL-3.0 (because it depends on
+@vivliostyle/core, which is AGPL-3.0); packages/syuki, harness and examples are MIT.

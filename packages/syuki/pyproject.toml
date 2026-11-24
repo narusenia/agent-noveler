@@ -2,6 +2,7 @@
 name = "syuki"
 version = "0.1.0"
 description = "小説の執筆支援 CLI（台帳・引用・照合）"
+readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
 dependencies = ["pyyaml>=6"]
